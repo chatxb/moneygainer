@@ -315,17 +315,14 @@
 
         // ---------------- SYNC WITH FIREBASE ----------------
         async function syncData() {
-            // Load Admin Global Config
             const gDoc = await db.collection("settings").doc("global").get();
             if (gDoc.exists) appSettings = gDoc.data();
 
-            // Load User Profile
             const userRef = db.collection("users").doc(userId);
             const doc = await userRef.get();
 
             if (doc.exists) {
                 const data = doc.data();
-                // Bot Offline Earning Logic
                 if (data.passive > 0 && data.lastSeen) {
                     const now = new Date();
                     const last = new Date(data.lastSeen);
@@ -336,11 +333,9 @@
                 }
                 S = { ...S, ...data };
             } else {
-                // New Account Creation
                 await userRef.set({ ...S, name: currentUser.name, joinedAt: new Date().toISOString() });
             }
 
-            // Daily Resets
             if (S.lastSpecialDate !== todayStr) { 
                 S.airdropAds = 0; S.boxUsed = 0; S.spinUsed = 0; S.lastSpecialDate = todayStr;
             }
@@ -357,10 +352,7 @@
 
         let saveTimeout;
         function save() {
-            // Save to Local (Tor existing logic)
             localStorage.setItem('crypto_pro_v15', JSON.stringify(S));
-            
-            // Save to Cloud (Debounced to save bandwidth)
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 db.collection("users").doc(userId).update({
@@ -369,7 +361,79 @@
             }, 3000);
         }
 
-        // ---------------- REST OF YOUR CODE (UNTOUCHED UI) ----------------
+        // ---------------- ADS INTEGRATION WITH BLOCK ID: int-27577 ----------------
+        function showAdsgramAd(rewardValue, type) {
+            let currentBtn = event.currentTarget;
+            let origBtn = currentBtn.innerHTML;
+            currentBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
+            currentBtn.style.pointerEvents = "none";
+
+            // Hardcoded Block ID int-27577 as requested
+            const blockId = "int-27577";
+
+            if (window.Adsgram) {
+                const AdCtrl = window.Adsgram.init({ blockId: blockId });
+                AdCtrl.show().then(() => {
+                    currentBtn.innerHTML = origBtn;
+                    currentBtn.style.pointerEvents = "auto";
+                    S.adsWatched++;
+                    
+                    if (type === 'airdrop_vip') { 
+                        S.airdropAds++; S.coins += 100000; showToast(`VIP Completed! +100,000 Coins`); 
+                    } else if (type === 'checkin') { 
+                        S.lastCheckinDate = todayStr; S.checkinStreak++; S.coins += rewardValue; 
+                        showToast(`10X CLAIMED! +${rewardValue.toLocaleString()} Coins`); closeModal('daily-modal'); 
+                    } else if (type === 'energy') { 
+                        S.energy = S.maxEnergy; showToast("Energy Fully Restored!"); 
+                    } else if (type === 'turbo') { 
+                        showToast("Turbo Activated!"); 
+                    } else { 
+                        S.coins += rewardValue; showToast(`Reward +${rewardValue.toLocaleString()} Coins!`); 
+                    }
+                    updateUI(); save();
+                }).catch(() => {
+                    currentBtn.innerHTML = origBtn;
+                    currentBtn.style.pointerEvents = "auto";
+                    showToast("Ad failed or skipped!", "error");
+                });
+            } else {
+                currentBtn.innerHTML = origBtn;
+                currentBtn.style.pointerEvents = "auto";
+                showToast("Ad SDK not loaded!", "error");
+            }
+        }
+
+        function triggerAdForSpecial(type) {
+            if (type === 'box' && S.boxUsed >= 5) return;
+            if (type === 'spin' && S.spinUsed >= 5) return;
+            
+            let currentBtn = event.currentTarget;
+            let origBtn = currentBtn.innerHTML;
+            currentBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
+            currentBtn.style.pointerEvents = "none";
+
+            // Hardcoded Block ID int-27577 as requested
+            const blockId = "int-27577";
+
+            if (window.Adsgram) {
+                const AdCtrl = window.Adsgram.init({ blockId: blockId });
+                AdCtrl.show().then(() => {
+                    currentBtn.innerHTML = origBtn;
+                    currentBtn.style.pointerEvents = "auto";
+                    processSpecialReward(type);
+                }).catch(() => {
+                    currentBtn.innerHTML = origBtn;
+                    currentBtn.style.pointerEvents = "auto";
+                    showToast("Ad failed or skipped!", "error");
+                });
+            } else {
+                currentBtn.innerHTML = origBtn;
+                currentBtn.style.pointerEvents = "auto";
+                showToast("Ad SDK not loaded!", "error");
+            }
+        }
+
+        // ---------------- UI & GAMEPLAY LOGIC ----------------
         const dailyRewards = [1000, 2000, 5000, 10000, 20000, 50000, 100000];
         function getTodayBaseReward() { return S.checkinStreak <= 7 ? dailyRewards[S.checkinStreak - 1] : 100000; }
 
@@ -422,23 +486,6 @@
             document.getElementById('btn-claim-10x').innerHTML = `<i class="fa-solid fa-play"></i> Claim 10X (${(base*10)/1000}K)`;
             document.getElementById('btn-claim-normal').innerHTML = `No thanks, claim 1x (${base/1000}K)`;
         }
-        window.claimDaily = (withAd) => {
-            if (S.lastCheckinDate === todayStr) return;
-            let base = getTodayBaseReward();
-            if (withAd) { showAdsgramAd(base * 10, 'checkin'); } 
-            else { S.coins += base; S.lastCheckinDate = todayStr; S.checkinStreak++; showToast(`Claimed +${base.toLocaleString()} Coins!`); closeModal('daily-modal'); updateUI(); save(); }
-        }
-
-        function triggerAdForSpecial(type) {
-            if (type === 'box' && S.boxUsed >= 5) return;
-            if (type === 'spin' && S.spinUsed >= 5) return;
-            let origBtn = event.currentTarget.innerHTML;
-            event.currentTarget.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
-            setTimeout(() => {
-                event.currentTarget.innerHTML = origBtn;
-                processSpecialReward(type);
-            }, 1500);
-        }
 
         function processSpecialReward(type) {
             S.adsWatched++;
@@ -476,21 +523,6 @@
             closeModal('reward-modal'); updateUI(); save();
         }
 
-        function showAdsgramAd(rewardValue, type) {
-            let origBtn = event.currentTarget.innerHTML;
-            event.currentTarget.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
-            setTimeout(() => {
-                event.currentTarget.innerHTML = origBtn;
-                S.adsWatched++;
-                if (type === 'airdrop_vip') { S.airdropAds++; showToast(`VIP Completed! +100,000 Coins`); S.coins+= 100000;}
-                else if (type === 'checkin') { S.lastCheckinDate = todayStr; S.checkinStreak++; showToast(`10X CLAIMED! +${rewardValue.toLocaleString()} Coins`); S.coins += rewardValue; closeModal('daily-modal'); }
-                else if (type === 'energy') { S.energy = S.maxEnergy; showToast("Energy Fully Restored!"); }
-                else if (type === 'turbo') { showToast("Turbo Activated!"); }
-                else { showToast(`Reward +${rewardValue.toLocaleString()} Coins!`); S.coins += rewardValue; }
-                updateUI(); save();
-            }, 1500);
-        }
-
         window.watchAirdropAd = () => { if (S.airdropAds >= 5) return; showAdsgramAd(100000, 'airdrop_vip'); }
 
         const clicker = document.getElementById('clicker');
@@ -509,7 +541,8 @@
         function renderMines() {
             const list = document.getElementById('mine-list');
             list.innerHTML = mines.map((m, i) => {
-                let cost = Math.floor(m.baseCost * Math.pow(1.5, S.mineLvls[i]));
+                let base = m.adminKey ? (appSettings[m.adminKey] || m.baseCost) : m.baseCost;
+                let cost = Math.floor(base * Math.pow(1.5, S.mineLvls[i]));
                 return `<div class="card" style="margin-bottom:12px; padding: 12px; display: flex; flex-direction: column; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div class="card-icon" style="width: 45px; height: 45px; font-size: 20px;">${m.ico}</div>
@@ -573,7 +606,7 @@
         }
 
         window.onload = async () => {
-            await syncData(); // Pehle database se data load hoga
+            await syncData(); 
             setTimeout(checkDailyPopup, 1000); 
         };
     </script>
