@@ -96,7 +96,7 @@
             <p style="font-size: 11px; color: var(--muted); margin-top: 5px;">Claim daily to grow your streak!</p>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; margin-top: 15px;" id="checkin-days"></div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button id="btn-claim-10x" class="btn-3d btn-3d-green" onclick="claimDaily(true)"></button>
+                <button id="btn-claim-10x" class="btn-3d btn-3d-green" onclick="claimDaily(true, this)"></button>
                 <button id="btn-claim-normal" style="background:none; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;" onclick="claimDaily(false)"></button>
             </div>
         </div>
@@ -157,7 +157,7 @@
             <div class="premium-ad-banner" style="margin-top: 10px;">
                 <h3><i class="fa-solid fa-gift"></i> SPONSORED REWARD</h3>
                 <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Watch a short video to claim <b style="color:var(--gold);">+25,000 Coins</b>.</p>
-                <button class="btn-3d btn-3d-gold" onclick="showAdsgramAd(25000, 'banner')"><i class="fa-solid fa-play"></i> Claim Reward</button>
+                <button class="btn-3d btn-3d-gold" onclick="showAdsgramAd(25000, 'banner', this)"><i class="fa-solid fa-play"></i> Claim Reward</button>
             </div>
 
             <div class="section-title">DAILY BOOSTERS</div>
@@ -165,12 +165,12 @@
                 <div class="card">
                     <div class="card-icon" style="color: var(--accent); background: rgba(255,0,122,0.1); border-color: rgba(255,0,122,0.2);"><i class="fa-solid fa-rocket"></i></div>
                     <p style="font-size: 13px; font-weight: 800;">Turbo Mode</p>
-                    <button class="btn-3d btn-3d-pink" onclick="showAdsgramAd(0, 'turbo')"><i class="fa-solid fa-bolt"></i> Activate</button>
+                    <button class="btn-3d btn-3d-pink" onclick="showAdsgramAd(0, 'turbo', this)"><i class="fa-solid fa-bolt"></i> Activate</button>
                 </div>
                 <div class="card">
                     <div class="card-icon" style="color: var(--success); border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.08);"><i class="fa-solid fa-battery-full"></i></div>
                     <p style="font-size: 13px; font-weight: 800;">Full Recovery</p>
-                    <button class="btn-3d btn-3d-cyan" onclick="showAdsgramAd(0, 'energy')"><i class="fa-solid fa-plug"></i> Refill</button>
+                    <button class="btn-3d btn-3d-cyan" onclick="showAdsgramAd(0, 'energy', this)"><i class="fa-solid fa-plug"></i> Refill</button>
                 </div>
             </div>
         </div>
@@ -193,7 +193,7 @@
                     </div>
                     <p style="font-size: 11px; color: var(--muted); font-weight: 600;">Win up to 100K Coins</p>
                 </div>
-                <button id="btn-box" class="btn-3d btn-3d-gold" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('box')">OPEN</button>
+                <button id="btn-box" class="btn-3d btn-3d-gold" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('box', this)">OPEN</button>
             </div>
 
             <div class="card horizontal" style="border-color: var(--success); background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent);">
@@ -205,7 +205,7 @@
                     </div>
                     <p style="font-size: 11px; color: var(--muted); font-weight: 600;">Win up to 200K Coins</p>
                 </div>
-                <button id="btn-spin" class="btn-3d btn-3d-green" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('spin')">SPIN</button>
+                <button id="btn-spin" class="btn-3d btn-3d-green" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('spin', this)">SPIN</button>
             </div>
 
             <div class="section-title" style="margin-top: 25px;">COMMUNITY</div>
@@ -225,7 +225,7 @@
                     <h4 style="font-size: 14px; font-weight: 800;">Mini Ads Loop</h4>
                     <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+10,000 Coins</p>
                 </div>
-                <button class="btn-3d btn-3d-pink" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(10000, 'task')"><i class="fa-solid fa-play"></i></button>
+                <button class="btn-3d btn-3d-pink" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(10000, 'task', this)"><i class="fa-solid fa-play"></i></button>
             </div>
             <div class="card horizontal" style="border-color: var(--primary);">
                 <div class="card-icon" style="color: var(--primary);"><i class="fa-solid fa-film"></i></div>
@@ -233,7 +233,7 @@
                     <h4 style="font-size: 14px; font-weight: 800;">Mega Commercial</h4>
                     <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+30,000 Coins</p>
                 </div>
-                <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(30000, 'task')"><i class="fa-solid fa-play"></i></button>
+                <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(30000, 'task', this)"><i class="fa-solid fa-play"></i></button>
             </div>
         </div>
 
@@ -266,7 +266,7 @@
                     <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800;"><span>Progress Today</span><span style="color: var(--gold);"><span id="airdrop-count">0</span> / 5</span></div>
                     <div class="progress-bar"><div id="airdrop-progress" class="progress-fill" style="width: 0%;"></div></div>
                 </div>
-                <button id="btn-airdrop-ad" class="btn-3d btn-3d-gold" style="padding: 12px; font-size: 12px;" onclick="watchAirdropAd()"><i class="fa-solid fa-crown"></i> WATCH VIP AD (+100K)</button>
+                <button id="btn-airdrop-ad" class="btn-3d btn-3d-gold" style="padding: 12px; font-size: 12px;" onclick="watchAirdropAd(this)"><i class="fa-solid fa-crown"></i> WATCH VIP AD (+100K)</button>
                 <div id="airdrop-complete-msg" style="display: none; color: #00FF88; font-weight: 800; font-size: 11px; padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 10px; margin-top: 10px; border: 1px solid rgba(0,255,136,0.3);"><i class="fa-solid fa-circle-check"></i> ALL 5 VIP ADS COMPLETED TODAY!</div>
             </div>
         </div>
@@ -362,20 +362,24 @@
         }
 
         // ---------------- ADS INTEGRATION WITH BLOCK ID: int-27577 ----------------
-        function showAdsgramAd(rewardValue, type) {
-            let currentBtn = event.currentTarget;
-            let origBtn = currentBtn.innerHTML;
-            currentBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
-            currentBtn.style.pointerEvents = "none";
+        function showAdsgramAd(rewardValue, type, btnElement) {
+            let origBtn = "";
+            if (btnElement) {
+                origBtn = btnElement.innerHTML;
+                btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
+                btnElement.style.pointerEvents = "none";
+            }
 
-            // Hardcoded Block ID int-27577 as requested
             const blockId = "int-27577";
 
             if (window.Adsgram) {
                 const AdCtrl = window.Adsgram.init({ blockId: blockId });
                 AdCtrl.show().then(() => {
-                    currentBtn.innerHTML = origBtn;
-                    currentBtn.style.pointerEvents = "auto";
+                    // AD SUCCESS LOGIC (User watched full ad)
+                    if (btnElement) {
+                        btnElement.innerHTML = origBtn;
+                        btnElement.style.pointerEvents = "auto";
+                    }
                     S.adsWatched++;
                     
                     if (type === 'airdrop_vip') { 
@@ -392,45 +396,79 @@
                     }
                     updateUI(); save();
                 }).catch(() => {
-                    currentBtn.innerHTML = origBtn;
-                    currentBtn.style.pointerEvents = "auto";
-                    showToast("Ad failed or skipped!", "error");
+                    // AD ERROR/SKIP LOGIC (User closed early, no points given)
+                    if (btnElement) {
+                        btnElement.innerHTML = origBtn;
+                        btnElement.style.pointerEvents = "auto";
+                    }
+                    showToast("Ad cancelled! Watch full ad to earn.", "error");
                 });
             } else {
-                currentBtn.innerHTML = origBtn;
-                currentBtn.style.pointerEvents = "auto";
+                if (btnElement) {
+                    btnElement.innerHTML = origBtn;
+                    btnElement.style.pointerEvents = "auto";
+                }
                 showToast("Ad SDK not loaded!", "error");
             }
         }
 
-        function triggerAdForSpecial(type) {
+        function triggerAdForSpecial(type, btnElement) {
             if (type === 'box' && S.boxUsed >= 5) return;
             if (type === 'spin' && S.spinUsed >= 5) return;
             
-            let currentBtn = event.currentTarget;
-            let origBtn = currentBtn.innerHTML;
-            currentBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
-            currentBtn.style.pointerEvents = "none";
+            let origBtn = "";
+            if (btnElement) {
+                origBtn = btnElement.innerHTML;
+                btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
+                btnElement.style.pointerEvents = "none";
+            }
 
-            // Hardcoded Block ID int-27577 as requested
             const blockId = "int-27577";
 
             if (window.Adsgram) {
                 const AdCtrl = window.Adsgram.init({ blockId: blockId });
                 AdCtrl.show().then(() => {
-                    currentBtn.innerHTML = origBtn;
-                    currentBtn.style.pointerEvents = "auto";
+                    // AD SUCCESS LOGIC (User watched full ad)
+                    if (btnElement) {
+                        btnElement.innerHTML = origBtn;
+                        btnElement.style.pointerEvents = "auto";
+                    }
                     processSpecialReward(type);
                 }).catch(() => {
-                    currentBtn.innerHTML = origBtn;
-                    currentBtn.style.pointerEvents = "auto";
-                    showToast("Ad failed or skipped!", "error");
+                    // AD ERROR/SKIP LOGIC (User closed early)
+                    if (btnElement) {
+                        btnElement.innerHTML = origBtn;
+                        btnElement.style.pointerEvents = "auto";
+                    }
+                    showToast("Ad cancelled! Watch full ad to earn.", "error");
                 });
             } else {
-                currentBtn.innerHTML = origBtn;
-                currentBtn.style.pointerEvents = "auto";
+                if (btnElement) {
+                    btnElement.innerHTML = origBtn;
+                    btnElement.style.pointerEvents = "auto";
+                }
                 showToast("Ad SDK not loaded!", "error");
             }
+        }
+
+        window.claimDaily = (withAd, btnElement) => {
+            if (S.lastCheckinDate === todayStr) return;
+            let base = getTodayBaseReward();
+            if (withAd) { 
+                showAdsgramAd(base * 10, 'checkin', btnElement); 
+            } else { 
+                S.coins += base; 
+                S.lastCheckinDate = todayStr; 
+                S.checkinStreak++; 
+                showToast(`Claimed +${base.toLocaleString()} Coins!`); 
+                closeModal('daily-modal'); 
+                updateUI(); save(); 
+            }
+        }
+
+        window.watchAirdropAd = (btnElement) => { 
+            if (S.airdropAds >= 5) return; 
+            showAdsgramAd(100000, 'airdrop_vip', btnElement); 
         }
 
         // ---------------- UI & GAMEPLAY LOGIC ----------------
@@ -522,8 +560,6 @@
             showToast(`Awesome! +${pendingSpecialReward.toLocaleString()} Coins added!`);
             closeModal('reward-modal'); updateUI(); save();
         }
-
-        window.watchAirdropAd = () => { if (S.airdropAds >= 5) return; showAdsgramAd(100000, 'airdrop_vip'); }
 
         const clicker = document.getElementById('clicker');
         clicker.addEventListener('touchstart', (e) => { e.preventDefault(); Array.from(e.touches).forEach(t => triggerClick(t.clientX, t.clientY)); }, { passive: false });
