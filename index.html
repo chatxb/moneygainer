@@ -1,1 +1,581 @@
-hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto-X Pro Adsgram</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg: #090B10; --card: #141824; --primary: #00D2FF; --primary-dark: #3A7BD5;
+            --accent: #FF007A; --accent-dark: #7928CA; --gold: #F5A623; --success: #00FF88;
+            --text: #FFFFFF; --muted: #8F9BB3; --border: rgba(255,255,255,0.06);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: rgba(9, 11, 16, 0.95); z-index: 10; }
+        .user-chip { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 210, 255, 0.3); border: 1px solid var(--primary); }
+        .balance { font-family: 'Space Mono', monospace; font-size: 24px; color: var(--gold); font-weight: 700; text-shadow: 0 0 15px rgba(245, 166, 35, 0.4); }
+
+        main { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .clicker-box { text-align: center; padding: 20px 0 30px 0; }
+        .main-coin { width: 220px; height: 220px; margin: 0 auto; background: linear-gradient(145deg, #1A2033, #090B10); border: 4px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 80px; color: var(--primary); box-shadow: 0 0 40px rgba(0, 210, 255, 0.2), inset 0 0 40px rgba(0, 210, 255, 0.1); transition: all 0.1s; cursor: pointer; user-select: none; position: relative; }
+        .main-coin::after { content: ''; position: absolute; top: 10px; left: 20px; right: 20px; height: 40%; background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent); border-radius: 50%; pointer-events: none; }
+        .main-coin:active { transform: scale(0.96); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 60px rgba(255, 0, 122, 0.3); }
+
+        .section-title { font-size: 11px; color: var(--muted); font-weight: 800; letter-spacing: 1.5px; margin: 20px 0 10px 5px; text-transform: uppercase; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .card.horizontal { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .card-icon { width: 44px; height: 44px; background: rgba(0, 210, 255, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary); border: 1px solid rgba(0, 210, 255, 0.2); }
+
+        .premium-ad-banner { background: linear-gradient(135deg, rgba(255, 0, 122, 0.15), rgba(121, 40, 202, 0.15)); border: 1px solid rgba(255, 0, 122, 0.4); border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 20px; }
+        .premium-ad-banner h3 { color: var(--text); font-size: 15px; margin-bottom: 5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        .btn-3d { position: relative; border: none; padding: 14px 18px; border-radius: 12px; font-family: 'Outfit'; font-weight: 800; font-size: 13px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; transition: all 0.1s; width: 100%; }
+        .btn-3d:active { transform: translateY(6px); box-shadow: 0 0px 0px transparent !important; }
+        .btn-3d.disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; box-shadow: none !important; transform: translateY(6px); }
+        .btn-3d-pink { background: linear-gradient(135deg, #FF007A, #B30055); box-shadow: 0 6px 0px #7A003E; }
+        .btn-3d-cyan { background: linear-gradient(135deg, #00D2FF, #0088CC); box-shadow: 0 6px 0px #005F8F; }
+        .btn-3d-gold { background: linear-gradient(135deg, #F5A623, #D08000); box-shadow: 0 6px 0px #9A5E00; }
+        .btn-3d-green { background: linear-gradient(135deg, #00FF88, #00B35F); box-shadow: 0 6px 0px #007A41; color: #000; }
+        .btn-3d-blue { background: linear-gradient(135deg, #0088cc, #005580); box-shadow: 0 6px 0px #00334d; }
+
+        .toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: var(--card); border: 2px solid; border-radius: 15px; padding: 15px 20px; z-index: 9999; display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transition: 0.4s; width: 90%; max-width: 400px; }
+        .toast.show { top: 30px; }
+        .toast.error { border-color: var(--accent); color: var(--text); }
+        .toast.success { border-color: var(--success); color: var(--text); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .modal-box { background: var(--card); border: 1px solid var(--gold); border-radius: 20px; padding: 25px; width: 90%; max-width: 360px; box-shadow: 0 0 50px rgba(245, 166, 35, 0.2); position: relative; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .close-modal { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+        
+        @keyframes spinWheel { 0% { transform: rotate(0deg); } 100% { transform: rotate(1800deg); } }
+        @keyframes shakeBox { 0%, 100% { transform: translateX(0) scale(1); } 20% { transform: translateX(-15px) rotate(-15deg) scale(1.1); } 40% { transform: translateX(15px) rotate(15deg) scale(1.1); } 60% { transform: translateX(-15px) rotate(-15deg) scale(1.1); } 80% { transform: translateX(15px) rotate(15deg) scale(1.1); } }
+        .anim-spin { animation: spinWheel 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .anim-shake { animation: shakeBox 1s ease-in-out infinite; color: var(--gold); }
+
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(14, 18, 28, 0.98); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 15px 0 25px; z-index: 50; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 20%; }
+        .nav-item i { font-size: 22px; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active i { transform: translateY(-4px); text-shadow: 0 0 12px rgba(0, 210, 255, 0.5); }
+
+        .float-text { position: absolute; font-family: 'Space Mono'; font-weight: bold; color: var(--primary); pointer-events: none; animation: float 0.7s forwards; z-index: 999; }
+        @keyframes float { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-80px) scale(1.2); } }
+        .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width 0.3s; }
+    </style>
+</head>
+<body>
+
+    <div id="toastBox" class="toast">
+        <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+        <div style="flex: 1;"><p id="toastMsg">Message</p></div>
+    </div>
+
+    <div class="modal-overlay" id="daily-modal">
+        <div class="modal-box">
+            <button class="close-modal" onclick="closeModal('daily-modal')"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="color: var(--gold); font-size: 18px;"><i class="fa-solid fa-calendar-check"></i> 7-DAY STREAK</h2>
+            <p style="font-size: 11px; color: var(--muted); margin-top: 5px;">Claim daily to grow your streak!</p>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; margin-top: 15px;" id="checkin-days"></div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button id="btn-claim-10x" class="btn-3d btn-3d-green" onclick="claimDaily(true)"></button>
+                <button id="btn-claim-normal" style="background:none; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;" onclick="claimDaily(false)"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="reward-modal">
+        <div class="modal-box" style="padding: 40px 20px;">
+            <i id="reward-icon" class="fa-solid fa-dharmachakra" style="font-size: 70px; color: var(--success); display: inline-block;"></i>
+            <h2 id="reward-title" style="margin-top: 20px; font-size: 24px; color: #fff; text-transform: uppercase;">LUCKY SPIN</h2>
+            <p id="reward-desc" style="font-size: 12px; color: var(--muted); margin-top: 5px;">Generating your reward...</p>
+            
+            <div id="reward-amount" style="font-size: 35px; color: var(--gold); font-family: 'Space Mono'; font-weight: 800; margin-top: 20px; opacity: 0; transition: 0.5s;">0</div>
+            
+            <button id="btn-collect" class="btn-3d btn-3d-cyan" style="margin-top: 25px; opacity: 0; pointer-events: none;" onclick="collectSpecialReward()">COLLECT PRIZE</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="user-chip">
+            <div class="avatar" id="header-avatar"></div>
+            <div>
+                <p style="font-size: 10px; color: var(--muted); font-weight: 800;">ELITE MINER</p>
+                <p style="font-size: 13px; font-weight: 800;" id="header-name">Loading...</p>
+            </div>
+        </div>
+        <div class="balance-container">
+            <p style="font-size: 10px; color: var(--muted); font-weight: 800;">TOTAL ASSETS</p>
+            <div class="balance" id="main-balance">0</div>
+        </div>
+    </header>
+
+    <main>
+        <div id="tab-tap" class="tab-content active">
+            <div class="grid-2">
+                <div class="card" style="padding: 12px; text-align: center;">
+                    <span style="font-size: 10px; color: var(--muted); font-weight: 800;">PROFIT / TAP</span>
+                    <h3 style="color: var(--primary); font-family: 'Space Mono';">+<span id="tap-power">1</span></h3>
+                </div>
+                <div class="card" style="padding: 12px; text-align: center;">
+                    <span style="font-size: 10px; color: var(--muted); font-weight: 800;">PROFIT / HOUR</span>
+                    <h3 style="color: var(--success); font-family: 'Space Mono';">+<span id="passive-power">0</span></h3>
+                </div>
+            </div>
+
+            <div class="clicker-box">
+                <div class="main-coin" id="clicker"><i class="fa-brands fa-bitcoin"></i></div>
+                <div style="margin-top: 35px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 8px;">
+                        <span style="color: var(--muted);"><i class="fa-solid fa-bolt"></i> ENERGY</span>
+                        <span id="energy-val" style="color: var(--primary);">1000/1000</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
+                        <div id="energy-bar" style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); transition: width 0.2s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="premium-ad-banner" style="margin-top: 10px;">
+                <h3><i class="fa-solid fa-gift"></i> SPONSORED REWARD</h3>
+                <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Watch a short video to claim <b style="color:var(--gold);">+25,000 Coins</b>.</p>
+                <button class="btn-3d btn-3d-gold" onclick="showAdsgramAd(25000, 'banner')"><i class="fa-solid fa-play"></i> Claim Reward</button>
+            </div>
+
+            <div class="section-title">DAILY BOOSTERS</div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-icon" style="color: var(--accent); background: rgba(255,0,122,0.1); border-color: rgba(255,0,122,0.2);"><i class="fa-solid fa-rocket"></i></div>
+                    <p style="font-size: 13px; font-weight: 800;">Turbo Mode</p>
+                    <button class="btn-3d btn-3d-pink" onclick="showAdsgramAd(0, 'turbo')"><i class="fa-solid fa-bolt"></i> Activate</button>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: var(--success); border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.08);"><i class="fa-solid fa-battery-full"></i></div>
+                    <p style="font-size: 13px; font-weight: 800;">Full Recovery</p>
+                    <button class="btn-3d btn-3d-cyan" onclick="showAdsgramAd(0, 'energy')"><i class="fa-solid fa-plug"></i> Refill</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-mine" class="tab-content">
+            <div class="section-title">ACCOUNT UPGRADES</div>
+            <div id="mine-list"></div>
+        </div>
+
+        <div id="tab-earn" class="tab-content">
+            
+            <div class="section-title" style="color: var(--gold);"><i class="fa-solid fa-star"></i> HIGH REWARD ADS</div>
+            
+            <div class="card horizontal" style="border-color: var(--gold); background: linear-gradient(135deg, rgba(245, 166, 35, 0.05), transparent);">
+                <div class="card-icon" style="color: var(--gold); background: rgba(245, 166, 35, 0.1); border-color: rgba(245, 166, 35, 0.3);"><i class="fa-solid fa-box-open"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <h4 style="font-size: 15px; font-weight: 800;">Mystery Box</h4>
+                        <span style="font-size: 10px; background: rgba(245, 166, 35, 0.2); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-weight: 800;" id="box-limit">0/5</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--muted); font-weight: 600;">Win up to 100K Coins</p>
+                </div>
+                <button id="btn-box" class="btn-3d btn-3d-gold" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('box')">OPEN</button>
+            </div>
+
+            <div class="card horizontal" style="border-color: var(--success); background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent);">
+                <div class="card-icon" style="color: var(--success); background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3);"><i class="fa-solid fa-dharmachakra"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <h4 style="font-size: 15px; font-weight: 800;">Lucky Spin</h4>
+                        <span style="font-size: 10px; background: rgba(0, 255, 136, 0.2); color: var(--success); padding: 2px 6px; border-radius: 4px; font-weight: 800;" id="spin-limit">0/5</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--muted); font-weight: 600;">Win up to 200K Coins</p>
+                </div>
+                <button id="btn-spin" class="btn-3d btn-3d-green" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('spin')">SPIN</button>
+            </div>
+
+            <div class="section-title" style="margin-top: 25px;">COMMUNITY</div>
+            <div class="card horizontal" style="border-color: #0088cc;">
+                <div class="card-icon" style="color: #0088cc;"><i class="fa-brands fa-telegram"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800;">Official Channel</h4>
+                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+100,000 Coins</p>
+                </div>
+                <button class="btn-3d btn-3d-blue" style="width: auto; padding: 10px 16px;" onclick="window.open('https://t.me/')">JOIN</button>
+            </div>
+
+            <div class="section-title" style="margin-top: 25px;">INFINITE AD TASKS</div>
+            <div class="card horizontal" style="border-color: var(--accent); margin-bottom: 12px;">
+                <div class="card-icon" style="color: var(--accent);"><i class="fa-solid fa-infinity"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800;">Mini Ads Loop</h4>
+                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+10,000 Coins</p>
+                </div>
+                <button class="btn-3d btn-3d-pink" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(10000, 'task')"><i class="fa-solid fa-play"></i></button>
+            </div>
+            <div class="card horizontal" style="border-color: var(--primary);">
+                <div class="card-icon" style="color: var(--primary);"><i class="fa-solid fa-film"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800;">Mega Commercial</h4>
+                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+30,000 Coins</p>
+                </div>
+                <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(30000, 'task')"><i class="fa-solid fa-play"></i></button>
+            </div>
+        </div>
+
+        <div id="tab-ranks" class="tab-content">
+            <div style="background: rgba(245, 166, 35, 0.08); border: 1px solid rgba(245, 166, 35, 0.2); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px;">
+                <p style="color: var(--gold); font-size: 14px; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-trophy" style="margin-right: 5px;"></i> GLOBAL MINERS RANKING</p>
+            </div>
+            <div id="leaderboard-list"></div>
+            <div class="section-title" style="margin-top: 35px; color: var(--primary);">YOUR POSITION</div>
+            <div class="card horizontal" style="border-color: var(--primary); background: rgba(0, 210, 255, 0.05); padding: 18px 16px;">
+                <div class="card-icon" style="color: var(--primary); background: transparent; border: none; font-size: 20px; font-weight: 800;" id="lb-user-rank">#1</div>
+                <div id="lb-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 10px; border: 1px solid var(--primary); background: var(--bg);"></div>
+                <div style="flex:1;">
+                    <h4 style="font-size: 15px; font-weight: 800;">You</h4>
+                    <p style="font-size: 12px; color: var(--gold); font-weight: 800;"><i class="fa-brands fa-bitcoin" style="margin-right: 3px;"></i><span id="lb-user-coins-bottom">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-airdrop" class="tab-content">
+            <div style="background: rgba(0, 210, 255, 0.08); border: 1px solid rgba(0, 210, 255, 0.2); padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+                <p style="color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-wallet" style="margin-right: 5px;"></i> WALLET CONNECTION COMING SOON</p>
+            </div>
+            <div class="section-title">AIRDROP ALLOCATION EVENT</div>
+            <div class="card" style="text-align: center; padding: 18px; border-color: var(--gold); box-shadow: 0 0 15px rgba(245, 166, 35, 0.1);">
+                <i class="fa-solid fa-gem" style="font-size: 28px; color: var(--gold); margin-bottom: 8px;"></i>
+                <h3 style="font-size: 15px; font-weight: 800;">DAILY VIP ADS</h3>
+                <p style="font-size: 11px; color: var(--muted); margin-bottom: 15px; padding: 0 10px;">Watch 5 VIP Ads daily to secure airdrop allocation. Each ad gives massive coins!</p>
+                <div style="margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800;"><span>Progress Today</span><span style="color: var(--gold);"><span id="airdrop-count">0</span> / 5</span></div>
+                    <div class="progress-bar"><div id="airdrop-progress" class="progress-fill" style="width: 0%;"></div></div>
+                </div>
+                <button id="btn-airdrop-ad" class="btn-3d btn-3d-gold" style="padding: 12px; font-size: 12px;" onclick="watchAirdropAd()"><i class="fa-solid fa-crown"></i> WATCH VIP AD (+100K)</button>
+                <div id="airdrop-complete-msg" style="display: none; color: #00FF88; font-weight: 800; font-size: 11px; padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 10px; margin-top: 10px; border: 1px solid rgba(0,255,136,0.3);"><i class="fa-solid fa-circle-check"></i> ALL 5 VIP ADS COMPLETED TODAY!</div>
+            </div>
+        </div>
+    </main>
+
+    <nav>
+        <div class="nav-item active" onclick="switchTab('tap', this)"><i class="fa-solid fa-hand-pointer"></i> Tap</div>
+        <div class="nav-item" onclick="switchTab('mine', this)"><i class="fa-solid fa-bolt"></i> Boost</div>
+        <div class="nav-item" onclick="switchTab('earn', this)"><i class="fa-solid fa-sack-dollar"></i> Earn</div>
+        <div class="nav-item" onclick="switchTab('ranks', this)"><i class="fa-solid fa-ranking-star"></i> Ranks</div>
+        <div class="nav-item" onclick="switchTab('airdrop', this)"><i class="fa-solid fa-parachute-box"></i> Drop</div>
+    </nav>
+
+    <script>
+        // ---------------- FIREBASE INIT ----------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEk6L1ceXynWlC-LZYyRt1GDRx8eXCHco",
+            authDomain: "money-gainer-a545d.firebaseapp.com",
+            projectId: "money-gainer-a545d",
+            storageBucket: "money-gainer-a545d.firebasestorage.app",
+            messagingSenderId: "87451554201",
+            appId: "1:87451554201:web:fad92965268fe9cedc4308"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // TELEGRAM WEBAPP
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "test_user_123";
+        let currentUser = { name: "Elite Miner", avatarHTML: '<i class="fa-solid fa-user-astronaut" style="font-size: 20px; color: var(--primary);"></i>' };
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            currentUser.name = tg.initDataUnsafe.user.first_name || "Crypto Master";
+            if (tg.initDataUnsafe.user.photo_url) currentUser.avatarHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" style="width:100%; height:100%; object-fit:cover;">`;
+        }
+
+        // STATE
+        let S = {
+            coins: 0, energy: 1000, passive: 0, adsWatched: 0, mineLvls: [0, 0, 0, 0], 
+            tapPower: 1, maxEnergy: 1000, energyRegen: 2, 
+            airdropAds: 0, checkinStreak: 1, lastCheckinDate: "",
+            boxUsed: 0, spinUsed: 0, lastSpecialDate: "", lastSeen: ""
+        };
+        let appSettings = {};
+        let todayStr = new Date().toLocaleDateString();
+
+        // ---------------- SYNC WITH FIREBASE ----------------
+        async function syncData() {
+            // Load Admin Global Config
+            const gDoc = await db.collection("settings").doc("global").get();
+            if (gDoc.exists) appSettings = gDoc.data();
+
+            // Load User Profile
+            const userRef = db.collection("users").doc(userId);
+            const doc = await userRef.get();
+
+            if (doc.exists) {
+                const data = doc.data();
+                // Bot Offline Earning Logic
+                if (data.passive > 0 && data.lastSeen) {
+                    const now = new Date();
+                    const last = new Date(data.lastSeen);
+                    const secondsOffline = Math.floor((now - last) / 1000);
+                    const earned = (data.passive / 3600) * Math.min(secondsOffline, 10800); 
+                    data.coins += earned;
+                    if(earned > 1) showToast(`Bot mined +${Math.floor(earned).toLocaleString()} while you were away!`);
+                }
+                S = { ...S, ...data };
+            } else {
+                // New Account Creation
+                await userRef.set({ ...S, name: currentUser.name, joinedAt: new Date().toISOString() });
+            }
+
+            // Daily Resets
+            if (S.lastSpecialDate !== todayStr) { 
+                S.airdropAds = 0; S.boxUsed = 0; S.spinUsed = 0; S.lastSpecialDate = todayStr;
+            }
+            if (S.lastCheckinDate !== todayStr) {
+                let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+                if (S.lastCheckinDate !== yesterday.toLocaleDateString() && S.lastCheckinDate !== "") { S.checkinStreak = 1; }
+            }
+
+            document.getElementById('header-name').innerText = currentUser.name;
+            document.getElementById('header-avatar').innerHTML = currentUser.avatarHTML;
+            document.getElementById('lb-user-avatar').innerHTML = currentUser.avatarHTML;
+            updateUI();
+        }
+
+        let saveTimeout;
+        function save() {
+            // Save to Local (Tor existing logic)
+            localStorage.setItem('crypto_pro_v15', JSON.stringify(S));
+            
+            // Save to Cloud (Debounced to save bandwidth)
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                db.collection("users").doc(userId).update({
+                    ...S, lastSeen: new Date().toISOString()
+                }).catch(e => console.error("Cloud save failed", e));
+            }, 3000);
+        }
+
+        // ---------------- REST OF YOUR CODE (UNTOUCHED UI) ----------------
+        const dailyRewards = [1000, 2000, 5000, 10000, 20000, 50000, 100000];
+        function getTodayBaseReward() { return S.checkinStreak <= 7 ? dailyRewards[S.checkinStreak - 1] : 100000; }
+
+        const mines = [
+            { id: 'tap', name: "Multitap", baseCost: 1000, earn: 1, desc: "+1 Profit per Tap", ico: '<i class="fa-solid fa-hand-pointer"></i>' },
+            { id: 'storage', name: "Energy Limit", baseCost: 2000, earn: 500, desc: "+500 Max Energy", ico: '<i class="fa-solid fa-battery-full"></i>' },
+            { id: 'regen', name: "Recharge Speed", baseCost: 3000, earn: 1, desc: "+1 Energy per Sec", ico: '<i class="fa-solid fa-bolt"></i>' },
+            { id: 'passive', name: "Auto Tap Bot", baseCost: 5000, earn: 1000, desc: "+1,000 Profit / Hour", ico: '<i class="fa-solid fa-robot"></i>' }
+        ];
+
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toastBox');
+            const icon = document.getElementById('toastIcon');
+            toast.className = `toast ${type}`;
+            icon.className = type === 'error' ? "fa-solid fa-triangle-exclamation" : "fa-solid fa-circle-check";
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        function updateUI() {
+            document.getElementById('main-balance').innerText = Math.floor(S.coins).toLocaleString();
+            document.getElementById('tap-power').innerText = S.tapPower.toLocaleString();
+            document.getElementById('passive-power').innerText = S.passive.toLocaleString();
+            document.getElementById('energy-val').innerText = Math.floor(S.energy) + " / " + S.maxEnergy.toLocaleString();
+            document.getElementById('energy-bar').style.width = (S.energy / S.maxEnergy) * 100 + "%";
+            document.getElementById('airdrop-count').innerText = S.airdropAds;
+            document.getElementById('airdrop-progress').style.width = (S.airdropAds / 5) * 100 + "%";
+            if (S.airdropAds >= 5) { document.getElementById('btn-airdrop-ad').style.display = 'none'; document.getElementById('airdrop-complete-msg').style.display = 'block'; }
+            document.getElementById('box-limit').innerText = `${S.boxUsed}/5`;
+            let btnBox = document.getElementById('btn-box');
+            if (S.boxUsed >= 5) { btnBox.classList.add('disabled'); btnBox.innerText = 'DONE'; }
+            document.getElementById('spin-limit').innerText = `${S.spinUsed}/5`;
+            let btnSpin = document.getElementById('btn-spin');
+            if (S.spinUsed >= 5) { btnSpin.classList.add('disabled'); btnSpin.innerText = 'DONE'; }
+            if(document.getElementById('tab-ranks').classList.contains('active')){ renderLeaderboard(); }
+        }
+
+        function checkDailyPopup() { if (S.lastCheckinDate !== todayStr) { document.getElementById('daily-modal').style.display = 'flex'; renderCheckinGrid(); } }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function renderCheckinGrid() {
+            const grid = document.getElementById('checkin-days'); grid.innerHTML = '';
+            for(let i=1; i<=7; i++) {
+                let statusClass = i < S.checkinStreak ? "claimed" : (i === S.checkinStreak ? "active" : "");
+                let val = i <= 7 ? dailyRewards[i-1] : 100000;
+                grid.innerHTML += `<div class="day-box ${statusClass}"><p style="font-size: 10px; color: var(--muted); font-weight:800;">DAY ${i}</p><i class="fa-solid ${statusClass === 'claimed' ? 'fa-check' : 'fa-coins'}" style="color: ${statusClass === 'claimed' ? 'var(--success)' : 'var(--gold)'}; margin: 5px 0;"></i><p style="font-size: 10px; font-weight:800;">${(val/1000)}K</p></div>`;
+            }
+            let base = getTodayBaseReward();
+            document.getElementById('btn-claim-10x').innerHTML = `<i class="fa-solid fa-play"></i> Claim 10X (${(base*10)/1000}K)`;
+            document.getElementById('btn-claim-normal').innerHTML = `No thanks, claim 1x (${base/1000}K)`;
+        }
+        window.claimDaily = (withAd) => {
+            if (S.lastCheckinDate === todayStr) return;
+            let base = getTodayBaseReward();
+            if (withAd) { showAdsgramAd(base * 10, 'checkin'); } 
+            else { S.coins += base; S.lastCheckinDate = todayStr; S.checkinStreak++; showToast(`Claimed +${base.toLocaleString()} Coins!`); closeModal('daily-modal'); updateUI(); save(); }
+        }
+
+        function triggerAdForSpecial(type) {
+            if (type === 'box' && S.boxUsed >= 5) return;
+            if (type === 'spin' && S.spinUsed >= 5) return;
+            let origBtn = event.currentTarget.innerHTML;
+            event.currentTarget.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
+            setTimeout(() => {
+                event.currentTarget.innerHTML = origBtn;
+                processSpecialReward(type);
+            }, 1500);
+        }
+
+        function processSpecialReward(type) {
+            S.adsWatched++;
+            pendingSpecialType = type;
+            document.getElementById('reward-modal').style.display = 'flex';
+            const icon = document.getElementById('reward-icon');
+            const title = document.getElementById('reward-title');
+            const amtText = document.getElementById('reward-amount');
+            const btn = document.getElementById('btn-collect');
+            amtText.style.opacity = "0"; btn.style.opacity = "0"; btn.style.pointerEvents = "none";
+            icon.className = ""; 
+            if (type === 'spin') {
+                pendingSpecialReward = appSettings.spin_reward || 200000;
+                icon.className = "fa-solid fa-dharmachakra anim-spin";
+                icon.style.color = "var(--success)";
+                title.innerText = "LUCKY SPIN";
+            } else if (type === 'box') {
+                pendingSpecialReward = appSettings.box_reward || 100000;
+                icon.className = "fa-solid fa-box-open anim-shake";
+                icon.style.color = "var(--gold)";
+                title.innerText = "MYSTERY BOX";
+            }
+            setTimeout(() => {
+                icon.classList.remove('anim-spin', 'anim-shake');
+                amtText.innerText = "+" + pendingSpecialReward.toLocaleString() + " COINS";
+                amtText.style.opacity = "1"; btn.style.opacity = "1"; btn.style.pointerEvents = "auto";
+            }, 2500); 
+        }
+
+        window.collectSpecialReward = () => {
+            S.coins += pendingSpecialReward;
+            if (pendingSpecialType === 'box') S.boxUsed++;
+            if (pendingSpecialType === 'spin') S.spinUsed++;
+            showToast(`Awesome! +${pendingSpecialReward.toLocaleString()} Coins added!`);
+            closeModal('reward-modal'); updateUI(); save();
+        }
+
+        function showAdsgramAd(rewardValue, type) {
+            let origBtn = event.currentTarget.innerHTML;
+            event.currentTarget.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
+            setTimeout(() => {
+                event.currentTarget.innerHTML = origBtn;
+                S.adsWatched++;
+                if (type === 'airdrop_vip') { S.airdropAds++; showToast(`VIP Completed! +100,000 Coins`); S.coins+= 100000;}
+                else if (type === 'checkin') { S.lastCheckinDate = todayStr; S.checkinStreak++; showToast(`10X CLAIMED! +${rewardValue.toLocaleString()} Coins`); S.coins += rewardValue; closeModal('daily-modal'); }
+                else if (type === 'energy') { S.energy = S.maxEnergy; showToast("Energy Fully Restored!"); }
+                else if (type === 'turbo') { showToast("Turbo Activated!"); }
+                else { showToast(`Reward +${rewardValue.toLocaleString()} Coins!`); S.coins += rewardValue; }
+                updateUI(); save();
+            }, 1500);
+        }
+
+        window.watchAirdropAd = () => { if (S.airdropAds >= 5) return; showAdsgramAd(100000, 'airdrop_vip'); }
+
+        const clicker = document.getElementById('clicker');
+        clicker.addEventListener('touchstart', (e) => { e.preventDefault(); Array.from(e.touches).forEach(t => triggerClick(t.clientX, t.clientY)); }, { passive: false });
+        clicker.addEventListener('mousedown', (e) => triggerClick(e.clientX, e.clientY));
+
+        function triggerClick(x, y) {
+            if (S.energy >= S.tapPower) {
+                S.coins += S.tapPower; S.energy -= S.tapPower;
+                let t = document.createElement('div'); t.className = 'float-text'; t.innerText = '+' + S.tapPower;
+                t.style.left = (x - 10) + 'px'; t.style.top = (y - 20) + 'px'; document.body.appendChild(t);
+                setTimeout(() => t.remove(), 700); updateUI(); save();
+            }
+        }
+
+        function renderMines() {
+            const list = document.getElementById('mine-list');
+            list.innerHTML = mines.map((m, i) => {
+                let cost = Math.floor(m.baseCost * Math.pow(1.5, S.mineLvls[i]));
+                return `<div class="card" style="margin-bottom:12px; padding: 12px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="card-icon" style="width: 45px; height: 45px; font-size: 20px;">${m.ico}</div>
+                        <div style="flex:1;"><div style="display: flex; justify-content: space-between; align-items: center;"><h4 style="font-size: 15px; font-weight: 800;">${m.name}</h4><span style="background: rgba(0, 210, 255, 0.15); color: var(--primary); padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 1px;">LVL ${S.mineLvls[i]}</span></div><p style="font-size: 11px; color: var(--muted); margin-top: 3px;">Enhance your game mechanics</p></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);">
+                        <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
+                            <div><p style="font-size: 9px; color: var(--muted); font-weight: 800; margin-bottom: 3px; letter-spacing: 0.5px;">BOOST</p><p style="font-size: 12px; color: var(--success); font-weight: 800; font-family: 'Space Mono';"><i class="fa-solid fa-arrow-trend-up" style="margin-right: 3px; font-size: 10px;"></i>${m.desc}</p></div>
+                            <div style="width: 1px; height: 25px; background: rgba(255,255,255,0.1);"></div>
+                            <div><p style="font-size: 9px; color: var(--muted); font-weight: 800; margin-bottom: 3px; letter-spacing: 0.5px;">COST</p><p style="font-size: 12px; color: var(--gold); font-weight: 800; font-family: 'Space Mono';"><i class="fa-brands fa-bitcoin" style="margin-right: 3px;"></i>${cost.toLocaleString()}</p></div>
+                        </div>
+                        <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 10px 18px; font-size: 15px;" onclick="buyMine(${i}, ${cost})"><i class="fa-solid fa-arrow-up"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.buyMine = (i, cost) => {
+            if (S.coins >= cost) { 
+                S.coins -= cost; S.mineLvls[i]++; 
+                if (mines[i].id === 'tap') S.tapPower += mines[i].earn;
+                if (mines[i].id === 'storage') S.maxEnergy += mines[i].earn;
+                if (mines[i].id === 'regen') S.energyRegen += mines[i].earn;
+                if (mines[i].id === 'passive') S.passive += mines[i].earn;
+                renderMines(); updateUI(); save(); showToast(`Upgraded ${mines[i].name}!`); 
+            } else { showToast("Insufficient funds!", "error"); }
+        }
+
+        function renderLeaderboard() {
+            let playersData = [
+                { name: currentUser.name, coins: Math.floor(S.coins), avatarBox: currentUser.avatarHTML, isUser: true }, 
+                { name: "Bot_Alpha", coins: 50, avatarBox: '<img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" style="width:80%;">', isUser: false },
+                { name: "NoobMaster", coins: 15, avatarBox: '<img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" style="width:80%;">', isUser: false }
+            ];
+            playersData.sort((a, b) => b.coins - a.coins);
+            document.getElementById('leaderboard-list').innerHTML = playersData.slice(0, 5).map((p, i) => {
+                let color = i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "var(--text)";
+                let badge = i < 3 ? '<i class="fa-solid fa-medal"></i>' : `#${i + 1}`;
+                let border = i < 3 ? color : 'var(--border)';
+                return `
+                <div class="card horizontal" style="margin-bottom: 12px; padding: 15px; border-color: ${border};">
+                    <div style="width: 30px; font-size: ${i < 3 ? '22px' : '16px'}; font-weight: 800; color: ${color}; text-align: center;">${badge}</div>
+                    <div style="width: 42px; height: 42px; background: rgba(255,255,255,0.05); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 12px; border: 1px solid rgba(255,255,255,0.1);">${p.avatarBox}</div>
+                    <div style="flex:1;"><h4 style="font-size: 15px; font-weight: 800; color: ${p.isUser ? 'var(--primary)' : color};">${p.name}</h4><p style="font-size: 12px; color: var(--gold); font-weight: 800; margin-top: 3px;"><i class="fa-brands fa-bitcoin" style="margin-right: 3px;"></i>${p.coins.toLocaleString()}</p></div>
+                </div>`;
+            }).join('');
+        }
+
+        setInterval(() => { 
+            if (S.energy < S.maxEnergy) S.energy = Math.min(S.maxEnergy, S.energy + S.energyRegen); 
+            if (S.passive > 0) S.coins += (S.passive / 3600); 
+            updateUI(); 
+        }, 1000);
+
+        window.switchTab = (id, el) => {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active'); el.classList.add('active');
+            if (id === 'mine') renderMines();
+            if (id === 'ranks') renderLeaderboard();
+        }
+
+        window.onload = async () => {
+            await syncData(); // Pehle database se data load hoga
+            setTimeout(checkDailyPopup, 1000); 
+        };
+    </script>
+</body>
+</html>
