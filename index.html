@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Crypto-X Pro Adsgram</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -46,14 +46,15 @@
         .premium-ad-banner { background: linear-gradient(135deg, rgba(255, 0, 122, 0.15), rgba(121, 40, 202, 0.15)); border: 1px solid rgba(255, 0, 122, 0.4); border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 20px; }
         .premium-ad-banner h3 { color: var(--text); font-size: 15px; margin-bottom: 5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        .btn-3d { position: relative; border: none; padding: 14px 18px; border-radius: 12px; font-family: 'Outfit'; font-weight: 800; font-size: 13px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; transition: all 0.1s; width: 100%; }
-        .btn-3d:active { transform: translateY(6px); box-shadow: 0 0px 0px transparent !important; }
-        .btn-3d.disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; box-shadow: none !important; transform: translateY(6px); }
-        .btn-3d-pink { background: linear-gradient(135deg, #FF007A, #B30055); box-shadow: 0 6px 0px #7A003E; }
-        .btn-3d-cyan { background: linear-gradient(135deg, #00D2FF, #0088CC); box-shadow: 0 6px 0px #005F8F; }
-        .btn-3d-gold { background: linear-gradient(135deg, #F5A623, #D08000); box-shadow: 0 6px 0px #9A5E00; }
-        .btn-3d-green { background: linear-gradient(135deg, #00FF88, #00B35F); box-shadow: 0 6px 0px #007A41; color: #000; }
-        .btn-3d-blue { background: linear-gradient(135deg, #0088cc, #005580); box-shadow: 0 6px 0px #00334d; }
+        /* BUTTON FIXES HERE - Made them sleek and modern */
+        .btn-3d { position: relative; border: none; padding: 10px 14px; border-radius: 10px; font-family: 'Outfit'; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.1s; width: 100%; }
+        .btn-3d:active { transform: translateY(4px); box-shadow: 0 0px 0px transparent !important; }
+        .btn-3d.disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; box-shadow: none !important; transform: translateY(4px); }
+        .btn-3d-pink { background: linear-gradient(135deg, #FF007A, #B30055); box-shadow: 0 4px 0px #7A003E; }
+        .btn-3d-cyan { background: linear-gradient(135deg, #00D2FF, #0088CC); box-shadow: 0 4px 0px #005F8F; }
+        .btn-3d-gold { background: linear-gradient(135deg, #F5A623, #D08000); box-shadow: 0 4px 0px #9A5E00; }
+        .btn-3d-green { background: linear-gradient(135deg, #00FF88, #00B35F); box-shadow: 0 4px 0px #007A41; color: #000; }
+        .btn-3d-blue { background: linear-gradient(135deg, #0088cc, #005580); box-shadow: 0 4px 0px #00334d; }
 
         .toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: var(--card); border: 2px solid; border-radius: 15px; padding: 15px 20px; z-index: 9999; display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transition: 0.4s; width: 90%; max-width: 400px; }
         .toast.show { top: 30px; }
@@ -80,6 +81,11 @@
         @keyframes float { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-80px) scale(1.2); } }
         .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 8px; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width 0.3s; }
+
+        /* Premium Rank Card Styles */
+        .rank-card-premium { transition: all 0.3s ease; }
+        .rank-card-premium:hover { transform: translateY(-2px); }
+        .user-rank-highlight { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); box-shadow: 0 0 15px var(--primary); }
     </style>
 </head>
 <body>
@@ -182,6 +188,27 @@
 
         <div id="tab-earn" class="tab-content">
             
+            <div class="section-title" style="color: var(--success);"><i class="fa-solid fa-users"></i> REFERRAL PROGRAM</div>
+            <div class="card" style="border-color: var(--success); box-shadow: 0 4px 15px rgba(0, 255, 136, 0.1); margin-bottom: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="card-icon" style="color: var(--success); background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3);"><i class="fa-solid fa-user-plus"></i></div>
+                        <div>
+                            <h4 style="font-size: 15px; font-weight: 800;">Invite Friends</h4>
+                            <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+50,000 Coins / Friend</p>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 9px; color: var(--muted); font-weight: 800; letter-spacing: 0.5px;">TOTAL REFERS</p>
+                        <p style="font-size: 18px; color: var(--success); font-family: 'Space Mono'; font-weight: 800;" id="user-refers">0</p>
+                    </div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px dashed rgba(0, 255, 136, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <input type="text" id="refer-link" readonly style="flex: 1; background: transparent; border: none; color: var(--muted); font-family: 'Space Mono'; font-size: 11px; outline: none; width: 100%; overflow: hidden; text-overflow: ellipsis;" value="Loading...">
+                    <button class="btn-3d btn-3d-green" style="width: auto; padding: 8px 14px; font-size: 11px;" onclick="copyReferLink()"><i class="fa-solid fa-copy"></i> COPY</button>
+                </div>
+            </div>
+
             <div class="section-title" style="color: var(--gold);"><i class="fa-solid fa-star"></i> HIGH REWARD ADS</div>
             
             <div class="card horizontal" style="border-color: var(--gold); background: linear-gradient(135deg, rgba(245, 166, 35, 0.05), transparent);">
@@ -193,7 +220,7 @@
                     </div>
                     <p style="font-size: 11px; color: var(--muted); font-weight: 600;">Win up to 100K Coins</p>
                 </div>
-                <button id="btn-box" class="btn-3d btn-3d-gold" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('box', this)">OPEN</button>
+                <button id="btn-box" class="btn-3d btn-3d-gold" style="width: auto; padding: 8px 16px;" onclick="triggerAdForSpecial('box', this)">OPEN</button>
             </div>
 
             <div class="card horizontal" style="border-color: var(--success); background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent);">
@@ -205,7 +232,7 @@
                     </div>
                     <p style="font-size: 11px; color: var(--muted); font-weight: 600;">Win up to 200K Coins</p>
                 </div>
-                <button id="btn-spin" class="btn-3d btn-3d-green" style="width: auto; padding: 10px 18px;" onclick="triggerAdForSpecial('spin', this)">SPIN</button>
+                <button id="btn-spin" class="btn-3d btn-3d-green" style="width: auto; padding: 8px 16px;" onclick="triggerAdForSpecial('spin', this)">SPIN</button>
             </div>
 
             <div class="section-title" style="margin-top: 25px;">COMMUNITY</div>
@@ -215,7 +242,7 @@
                     <h4 style="font-size: 14px; font-weight: 800;">Official Channel</h4>
                     <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+100,000 Coins</p>
                 </div>
-                <button class="btn-3d btn-3d-blue" style="width: auto; padding: 10px 16px;" onclick="window.open('https://t.me/')">JOIN</button>
+                <button class="btn-3d btn-3d-blue" style="width: auto; padding: 8px 16px;" onclick="window.open('https://t.me/')">JOIN</button>
             </div>
 
             <div class="section-title" style="margin-top: 25px;">INFINITE AD TASKS</div>
@@ -225,7 +252,7 @@
                     <h4 style="font-size: 14px; font-weight: 800;">Mini Ads Loop</h4>
                     <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+10,000 Coins</p>
                 </div>
-                <button class="btn-3d btn-3d-pink" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(10000, 'task', this)"><i class="fa-solid fa-play"></i></button>
+                <button class="btn-3d btn-3d-pink" style="width: auto; padding: 8px 16px;" onclick="showAdsgramAd(10000, 'task', this)"><i class="fa-solid fa-play"></i></button>
             </div>
             <div class="card horizontal" style="border-color: var(--primary);">
                 <div class="card-icon" style="color: var(--primary);"><i class="fa-solid fa-film"></i></div>
@@ -233,22 +260,31 @@
                     <h4 style="font-size: 14px; font-weight: 800;">Mega Commercial</h4>
                     <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+30,000 Coins</p>
                 </div>
-                <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 10px 16px;" onclick="showAdsgramAd(30000, 'task', this)"><i class="fa-solid fa-play"></i></button>
+                <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 8px 16px;" onclick="showAdsgramAd(30000, 'task', this)"><i class="fa-solid fa-play"></i></button>
             </div>
         </div>
 
         <div id="tab-ranks" class="tab-content">
-            <div style="background: rgba(245, 166, 35, 0.08); border: 1px solid rgba(245, 166, 35, 0.2); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px;">
-                <p style="color: var(--gold); font-size: 14px; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-trophy" style="margin-right: 5px;"></i> GLOBAL MINERS RANKING</p>
+            <div style="background: linear-gradient(135deg, rgba(245, 166, 35, 0.15), rgba(245, 166, 35, 0.02)); border: 1px solid rgba(245, 166, 35, 0.3); padding: 18px; border-radius: 16px; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+                <p style="color: var(--gold); font-size: 15px; font-weight: 800; letter-spacing: 1.5px; text-shadow: 0 0 10px rgba(245,166,35,0.3);"><i class="fa-solid fa-trophy" style="margin-right: 8px;"></i> GLOBAL MINERS RANKING</p>
+                <p style="font-size: 11px; color: var(--muted); margin-top: 5px;">Top players update in real-time</p>
             </div>
+            
             <div id="leaderboard-list"></div>
-            <div class="section-title" style="margin-top: 35px; color: var(--primary);">YOUR POSITION</div>
-            <div class="card horizontal" style="border-color: var(--primary); background: rgba(0, 210, 255, 0.05); padding: 18px 16px;">
-                <div class="card-icon" style="color: var(--primary); background: transparent; border: none; font-size: 20px; font-weight: 800;" id="lb-user-rank">#1</div>
-                <div id="lb-user-avatar" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 10px; border: 1px solid var(--primary); background: var(--bg);"></div>
+            
+            <div class="section-title" style="margin-top: 35px; color: var(--primary); display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-crosshairs"></i> YOUR POSITION
+            </div>
+            
+            <div class="card horizontal" style="border-color: var(--primary); background: linear-gradient(90deg, rgba(0, 210, 255, 0.12), rgba(0, 210, 255, 0.03)); padding: 18px 16px; box-shadow: 0 5px 25px rgba(0, 210, 255, 0.15); border-radius: 16px; position: relative; overflow: hidden;">
+                <div class="user-rank-highlight"></div>
+                <div class="card-icon" style="color: var(--primary); background: transparent; border: none; font-size: 24px; font-weight: 900; width: 45px; text-shadow: 0 0 15px rgba(0,210,255,0.5);" id="lb-user-rank">#1</div>
+                
+                <div id="lb-user-avatar" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 15px; border: 2px solid var(--primary); background: var(--bg); padding: 2px; box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);"></div>
+                
                 <div style="flex:1;">
-                    <h4 style="font-size: 15px; font-weight: 800;">You</h4>
-                    <p style="font-size: 12px; color: var(--gold); font-weight: 800;"><i class="fa-brands fa-bitcoin" style="margin-right: 3px;"></i><span id="lb-user-coins-bottom">0</span></p>
+                    <h4 style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.5px;">You</h4>
+                    <p style="font-size: 14px; color: var(--gold); font-weight: 800; margin-top: 5px; letter-spacing: 0.5px;"><i class="fa-brands fa-bitcoin" style="margin-right: 4px;"></i><span id="lb-user-coins-bottom">0</span></p>
                 </div>
             </div>
         </div>
@@ -266,7 +302,7 @@
                     <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800;"><span>Progress Today</span><span style="color: var(--gold);"><span id="airdrop-count">0</span> / 5</span></div>
                     <div class="progress-bar"><div id="airdrop-progress" class="progress-fill" style="width: 0%;"></div></div>
                 </div>
-                <button id="btn-airdrop-ad" class="btn-3d btn-3d-gold" style="padding: 12px; font-size: 12px;" onclick="watchAirdropAd(this)"><i class="fa-solid fa-crown"></i> WATCH VIP AD (+100K)</button>
+                <button id="btn-airdrop-ad" class="btn-3d btn-3d-gold" style="padding: 10px; font-size: 11px;" onclick="watchAirdropAd(this)"><i class="fa-solid fa-crown"></i> WATCH VIP AD (+100K)</button>
                 <div id="airdrop-complete-msg" style="display: none; color: #00FF88; font-weight: 800; font-size: 11px; padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 10px; margin-top: 10px; border: 1px solid rgba(0,255,136,0.3);"><i class="fa-solid fa-circle-check"></i> ALL 5 VIP ADS COMPLETED TODAY!</div>
             </div>
         </div>
@@ -281,7 +317,6 @@
     </nav>
 
     <script>
-        // ---------------- FIREBASE INIT ----------------
         const firebaseConfig = {
             apiKey: "AIzaSyAEk6L1ceXynWlC-LZYyRt1GDRx8eXCHco",
             authDomain: "money-gainer-a545d.firebaseapp.com",
@@ -293,7 +328,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // TELEGRAM WEBAPP
         const tg = window.Telegram.WebApp;
         tg.expand();
         const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "test_user_123";
@@ -303,17 +337,17 @@
             if (tg.initDataUnsafe.user.photo_url) currentUser.avatarHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" style="width:100%; height:100%; object-fit:cover;">`;
         }
 
-        // STATE
+        const botUsername = "Your_Bot_Username";
+
         let S = {
             coins: 0, energy: 1000, passive: 0, adsWatched: 0, mineLvls: [0, 0, 0, 0], 
             tapPower: 1, maxEnergy: 1000, energyRegen: 2, 
             airdropAds: 0, checkinStreak: 1, lastCheckinDate: "",
-            boxUsed: 0, spinUsed: 0, lastSpecialDate: "", lastSeen: ""
+            boxUsed: 0, spinUsed: 0, lastSpecialDate: "", lastSeen: "", referrals: 0
         };
         let appSettings = {};
         let todayStr = new Date().toLocaleDateString();
 
-        // ---------------- SYNC WITH FIREBASE ----------------
         async function syncData() {
             const gDoc = await db.collection("settings").doc("global").get();
             if (gDoc.exists) appSettings = gDoc.data();
@@ -347,6 +381,8 @@
             document.getElementById('header-name').innerText = currentUser.name;
             document.getElementById('header-avatar').innerHTML = currentUser.avatarHTML;
             document.getElementById('lb-user-avatar').innerHTML = currentUser.avatarHTML;
+            document.getElementById('refer-link').value = `https://t.me/${botUsername}?start=ref_${userId}`;
+
             updateUI();
         }
 
@@ -361,7 +397,19 @@
             }, 3000);
         }
 
-        // ---------------- ADS INTEGRATION WITH BLOCK ID: int-27577 ----------------
+        window.copyReferLink = () => {
+            let linkInput = document.getElementById('refer-link');
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(linkInput.value).then(() => {
+                    showToast("Referral link copied!");
+                });
+            } else {
+                linkInput.select();
+                document.execCommand('copy');
+                showToast("Referral link copied!");
+            }
+        }
+
         function showAdsgramAd(rewardValue, type, btnElement) {
             let origBtn = "";
             if (btnElement) {
@@ -375,7 +423,6 @@
             if (window.Adsgram) {
                 const AdCtrl = window.Adsgram.init({ blockId: blockId });
                 AdCtrl.show().then(() => {
-                    // AD SUCCESS LOGIC (User watched full ad)
                     if (btnElement) {
                         btnElement.innerHTML = origBtn;
                         btnElement.style.pointerEvents = "auto";
@@ -396,7 +443,6 @@
                     }
                     updateUI(); save();
                 }).catch(() => {
-                    // AD ERROR/SKIP LOGIC (User closed early, no points given)
                     if (btnElement) {
                         btnElement.innerHTML = origBtn;
                         btnElement.style.pointerEvents = "auto";
@@ -428,14 +474,12 @@
             if (window.Adsgram) {
                 const AdCtrl = window.Adsgram.init({ blockId: blockId });
                 AdCtrl.show().then(() => {
-                    // AD SUCCESS LOGIC (User watched full ad)
                     if (btnElement) {
                         btnElement.innerHTML = origBtn;
                         btnElement.style.pointerEvents = "auto";
                     }
                     processSpecialReward(type);
                 }).catch(() => {
-                    // AD ERROR/SKIP LOGIC (User closed early)
                     if (btnElement) {
                         btnElement.innerHTML = origBtn;
                         btnElement.style.pointerEvents = "auto";
@@ -471,7 +515,6 @@
             showAdsgramAd(100000, 'airdrop_vip', btnElement); 
         }
 
-        // ---------------- UI & GAMEPLAY LOGIC ----------------
         const dailyRewards = [1000, 2000, 5000, 10000, 20000, 50000, 100000];
         function getTodayBaseReward() { return S.checkinStreak <= 7 ? dailyRewards[S.checkinStreak - 1] : 100000; }
 
@@ -500,6 +543,9 @@
             document.getElementById('energy-bar').style.width = (S.energy / S.maxEnergy) * 100 + "%";
             document.getElementById('airdrop-count').innerText = S.airdropAds;
             document.getElementById('airdrop-progress').style.width = (S.airdropAds / 5) * 100 + "%";
+            
+            document.getElementById('user-refers').innerText = S.referrals || 0;
+
             if (S.airdropAds >= 5) { document.getElementById('btn-airdrop-ad').style.display = 'none'; document.getElementById('airdrop-complete-msg').style.display = 'block'; }
             document.getElementById('box-limit').innerText = `${S.boxUsed}/5`;
             let btnBox = document.getElementById('btn-box');
@@ -596,35 +642,55 @@
             }).join('');
         }
 
-        window.buyMine = (i, cost) => {
-            if (S.coins >= cost) { 
-                S.coins -= cost; S.mineLvls[i]++; 
-                if (mines[i].id === 'tap') S.tapPower += mines[i].earn;
-                if (mines[i].id === 'storage') S.maxEnergy += mines[i].earn;
-                if (mines[i].id === 'regen') S.energyRegen += mines[i].earn;
-                if (mines[i].id === 'passive') S.passive += mines[i].earn;
-                renderMines(); updateUI(); save(); showToast(`Upgraded ${mines[i].name}!`); 
-            } else { showToast("Insufficient funds!", "error"); }
-        }
-
         function renderLeaderboard() {
             let playersData = [
                 { name: currentUser.name, coins: Math.floor(S.coins), avatarBox: currentUser.avatarHTML, isUser: true }, 
                 { name: "Bot_Alpha", coins: 50, avatarBox: '<img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" style="width:80%;">', isUser: false },
                 { name: "NoobMaster", coins: 15, avatarBox: '<img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" style="width:80%;">', isUser: false }
             ];
+            
             playersData.sort((a, b) => b.coins - a.coins);
+            
+            let userRankIndex = playersData.findIndex(p => p.isUser);
+            let userRankNum = userRankIndex + 1;
+
             document.getElementById('leaderboard-list').innerHTML = playersData.slice(0, 5).map((p, i) => {
+                let isTop3 = i < 3;
                 let color = i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "var(--text)";
-                let badge = i < 3 ? '<i class="fa-solid fa-medal"></i>' : `#${i + 1}`;
+                let badge = i === 0 ? '<i class="fa-solid fa-crown"></i>' : i < 3 ? '<i class="fa-solid fa-medal"></i>' : `#${i + 1}`;
                 let border = i < 3 ? color : 'var(--border)';
+                let glow = i === 0 ? `box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);` : '';
+                let bg = p.isUser ? 'linear-gradient(90deg, rgba(0, 210, 255, 0.1), var(--card))' : 'var(--card)';
+
                 return `
-                <div class="card horizontal" style="margin-bottom: 12px; padding: 15px; border-color: ${border};">
-                    <div style="width: 30px; font-size: ${i < 3 ? '22px' : '16px'}; font-weight: 800; color: ${color}; text-align: center;">${badge}</div>
-                    <div style="width: 42px; height: 42px; background: rgba(255,255,255,0.05); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 12px; border: 1px solid rgba(255,255,255,0.1);">${p.avatarBox}</div>
-                    <div style="flex:1;"><h4 style="font-size: 15px; font-weight: 800; color: ${p.isUser ? 'var(--primary)' : color};">${p.name}</h4><p style="font-size: 12px; color: var(--gold); font-weight: 800; margin-top: 3px;"><i class="fa-brands fa-bitcoin" style="margin-right: 3px;"></i>${p.coins.toLocaleString()}</p></div>
+                <div class="card horizontal rank-card-premium" style="margin-bottom: 12px; padding: 15px; border-color: ${border}; background: ${bg}; ${glow}">
+                    <div style="width: 30px; font-size: ${isTop3 ? '22px' : '16px'}; font-weight: 800; color: ${color}; text-align: center; text-shadow: 0 0 10px ${color};">${badge}</div>
+                    
+                    <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.05); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 15px; border: 2px solid ${isTop3 ? color : 'rgba(255,255,255,0.1)'}; padding: 2px;">
+                        <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg);">
+                            ${p.avatarBox}
+                        </div>
+                    </div>
+                    
+                    <div style="flex:1;">
+                        <h4 style="font-size: 15px; font-weight: 800; color: ${p.isUser ? 'var(--primary)' : 'var(--text)'};">${p.name} ${p.isUser ? '<i class="fa-solid fa-circle-check" style="font-size:12px; color:var(--success); margin-left:4px;"></i>' : ''}</h4>
+                        <p style="font-size: 13px; color: ${isTop3 ? color : 'var(--gold)'}; font-weight: 800; margin-top: 4px; letter-spacing: 0.5px;"><i class="fa-brands fa-bitcoin" style="margin-right: 4px;"></i>${p.coins.toLocaleString()}</p>
+                    </div>
                 </div>`;
             }).join('');
+
+            document.getElementById('lb-user-coins-bottom').innerText = Math.floor(S.coins).toLocaleString();
+            
+            let bottomRankEl = document.getElementById('lb-user-rank');
+            if (userRankNum === 1) {
+                bottomRankEl.innerHTML = '<i class="fa-solid fa-crown"></i>';
+                bottomRankEl.style.color = '#FFD700';
+                bottomRankEl.style.textShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
+            } else {
+                bottomRankEl.innerText = `#${userRankNum}`;
+                bottomRankEl.style.color = 'var(--primary)';
+                bottomRankEl.style.textShadow = '0 0 15px rgba(0, 210, 255, 0.5)';
+            }
         }
 
         setInterval(() => { 
