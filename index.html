@@ -41,13 +41,12 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .card.horizontal { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .card-icon { width: 44px; height: 44px; background: rgba(0, 210, 255, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary); border: 1px solid rgba(0, 210, 255, 0.2); }
+        .card-icon { width: 44px; height: 44px; min-width: 44px; background: rgba(0, 210, 255, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary); border: 1px solid rgba(0, 210, 255, 0.2); }
 
         .premium-ad-banner { background: linear-gradient(135deg, rgba(255, 0, 122, 0.15), rgba(121, 40, 202, 0.15)); border: 1px solid rgba(255, 0, 122, 0.4); border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 20px; }
         .premium-ad-banner h3 { color: var(--text); font-size: 15px; margin-bottom: 5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* BUTTON FIXES HERE - Made them sleek and modern */
-        .btn-3d { position: relative; border: none; padding: 10px 14px; border-radius: 10px; font-family: 'Outfit'; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.1s; width: 100%; }
+        .btn-3d { position: relative; border: none; padding: 10px 14px; border-radius: 10px; font-family: 'Outfit'; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; transition: all 0.1s; width: 100%; white-space: nowrap; }
         .btn-3d:active { transform: translateY(4px); box-shadow: 0 0px 0px transparent !important; }
         .btn-3d.disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; box-shadow: none !important; transform: translateY(4px); }
         .btn-3d-pink { background: linear-gradient(135deg, #FF007A, #B30055); box-shadow: 0 4px 0px #7A003E; }
@@ -82,13 +81,32 @@
         .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 8px; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width 0.3s; }
 
-        /* Premium Rank Card Styles */
         .rank-card-premium { transition: all 0.3s ease; }
         .rank-card-premium:hover { transform: translateY(-2px); }
         .user-rank-highlight { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); box-shadow: 0 0 15px var(--primary); }
+
+        /* LOADING SPINNER CSS */
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(0, 210, 255, 0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px rgba(0, 210, 255, 0.2); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* MOBILE RESPONSIVENESS */
+        @media (max-width: 380px) {
+            .main-coin { width: 180px; height: 180px; font-size: 65px; }
+            .balance { font-size: 20px; }
+            .btn-3d { font-size: 10px; padding: 8px 10px; }
+            .card.horizontal { padding: 12px; }
+            .card-icon { width: 38px; height: 38px; min-width: 38px; font-size: 16px; }
+            #refer-link { font-size: 9px !important; }
+        }
     </style>
 </head>
 <body>
+
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: var(--primary); font-family: 'Space Mono'; font-weight: 800; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,210,255,0.4);">CONNECTING...</p>
+    </div>
 
     <div id="toastBox" class="toast">
         <i id="toastIcon" class="fa-solid fa-circle-check"></i>
@@ -204,7 +222,7 @@
                     </div>
                 </div>
                 <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px dashed rgba(0, 255, 136, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                    <input type="text" id="refer-link" readonly style="flex: 1; background: transparent; border: none; color: var(--muted); font-family: 'Space Mono'; font-size: 11px; outline: none; width: 100%; overflow: hidden; text-overflow: ellipsis;" value="Loading...">
+                    <input type="text" id="refer-link" readonly style="flex: 1; background: transparent; border: none; color: var(--muted); font-family: 'Space Mono'; font-size: 11px; outline: none; width: 100%; overflow: hidden; text-overflow: ellipsis;" value="Generating Link...">
                     <button class="btn-3d btn-3d-green" style="width: auto; padding: 8px 14px; font-size: 11px;" onclick="copyReferLink()"><i class="fa-solid fa-copy"></i> COPY</button>
                 </div>
             </div>
@@ -280,7 +298,7 @@
                 <div class="user-rank-highlight"></div>
                 <div class="card-icon" style="color: var(--primary); background: transparent; border: none; font-size: 24px; font-weight: 900; width: 45px; text-shadow: 0 0 15px rgba(0,210,255,0.5);" id="lb-user-rank">#1</div>
                 
-                <div id="lb-user-avatar" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 15px; border: 2px solid var(--primary); background: var(--bg); padding: 2px; box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);"></div>
+                <div id="lb-user-avatar" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 15px; border: 2px solid var(--primary); background: var(--bg); box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);"></div>
                 
                 <div style="flex:1;">
                     <h4 style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.5px;">You</h4>
@@ -290,20 +308,31 @@
         </div>
 
         <div id="tab-airdrop" class="tab-content">
-            <div style="background: rgba(0, 210, 255, 0.08); border: 1px solid rgba(0, 210, 255, 0.2); padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
-                <p style="color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: 1px;"><i class="fa-solid fa-wallet" style="margin-right: 5px;"></i> WALLET CONNECTION COMING SOON</p>
+            
+            <div style="background: linear-gradient(90deg, rgba(0, 210, 255, 0.15), rgba(0, 210, 255, 0.05)); border: 1px solid var(--primary); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);">
+                <p style="color: #fff; font-size: 14px; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 10px var(--primary);"><i class="fa-solid fa-wallet" style="margin-right: 8px; color: var(--primary); font-size: 16px;"></i> WALLET CONNECTION COMING SOON</p>
             </div>
-            <div class="section-title">AIRDROP ALLOCATION EVENT</div>
-            <div class="card" style="text-align: center; padding: 18px; border-color: var(--gold); box-shadow: 0 0 15px rgba(245, 166, 35, 0.1);">
-                <i class="fa-solid fa-gem" style="font-size: 28px; color: var(--gold); margin-bottom: 8px;"></i>
-                <h3 style="font-size: 15px; font-weight: 800;">DAILY VIP ADS</h3>
-                <p style="font-size: 11px; color: var(--muted); margin-bottom: 15px; padding: 0 10px;">Watch 5 VIP Ads daily to secure airdrop allocation. Each ad gives massive coins!</p>
-                <div style="margin-bottom: 18px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800;"><span>Progress Today</span><span style="color: var(--gold);"><span id="airdrop-count">0</span> / 5</span></div>
-                    <div class="progress-bar"><div id="airdrop-progress" class="progress-fill" style="width: 0%;"></div></div>
+            
+            <div class="section-title" style="text-align: center; margin-bottom: 15px;">AIRDROP ALLOCATION EVENT</div>
+            
+            <div class="card" style="text-align: center; padding: 20px 15px; border: 1px solid rgba(245, 166, 35, 0.4); background: linear-gradient(180deg, rgba(245, 166, 35, 0.08) 0%, rgba(20, 24, 36, 0.9) 100%); box-shadow: 0 10px 30px rgba(245, 166, 35, 0.15); border-radius: 16px; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 100px; height: 100px; background: rgba(245, 166, 35, 0.2); filter: blur(40px); pointer-events: none;"></div>
+                
+                <div style="width: 50px; height: 50px; background: rgba(245, 166, 35, 0.1); border: 2px solid rgba(245, 166, 35, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; box-shadow: 0 0 15px rgba(245, 166, 35, 0.4);">
+                    <i class="fa-solid fa-gem" style="font-size: 22px; color: var(--gold); text-shadow: 0 0 10px var(--gold);"></i>
                 </div>
-                <button id="btn-airdrop-ad" class="btn-3d btn-3d-gold" style="padding: 10px; font-size: 11px;" onclick="watchAirdropAd(this)"><i class="fa-solid fa-crown"></i> WATCH VIP AD (+100K)</button>
-                <div id="airdrop-complete-msg" style="display: none; color: #00FF88; font-weight: 800; font-size: 11px; padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 10px; margin-top: 10px; border: 1px solid rgba(0,255,136,0.3);"><i class="fa-solid fa-circle-check"></i> ALL 5 VIP ADS COMPLETED TODAY!</div>
+                
+                <h3 style="font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff;">DAILY VIP ADS</h3>
+                <p style="font-size: 11px; color: var(--muted); margin-top: 5px; margin-bottom: 15px; padding: 0 5px; line-height: 1.4;">Watch 5 VIP Ads daily to secure airdrop allocation. Each ad gives massive coins!</p>
+                
+                <div style="margin-bottom: 18px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; margin-bottom: 6px;"><span>Progress Today</span><span style="color: var(--gold);"><span id="airdrop-count">0</span> / 5</span></div>
+                    <div class="progress-bar"><div id="airdrop-progress" class="progress-fill" style="width: 0%; box-shadow: 0 0 10px var(--gold);"></div></div>
+                </div>
+                
+                <button id="btn-airdrop-ad" class="btn-3d btn-3d-gold" style="padding: 10px; font-size: 11px; letter-spacing: 1px; box-shadow: 0 4px 0px #9A5E00, 0 8px 15px rgba(245,166,35,0.3);" onclick="watchAirdropAd(this)"><i class="fa-solid fa-crown"></i> WATCH VIP AD (+100K)</button>
+                
+                <div id="airdrop-complete-msg" style="display: none; color: #00FF88; font-weight: 800; font-size: 11px; padding: 12px; background: rgba(0, 255, 136, 0.1); border-radius: 10px; margin-top: 10px; border: 1px solid rgba(0,255,136,0.3); box-shadow: 0 0 10px rgba(0,255,136,0.2);"><i class="fa-solid fa-circle-check" style="font-size: 14px; margin-bottom: 4px; display: block;"></i> ALL 5 VIP ADS COMPLETED TODAY!</div>
             </div>
         </div>
     </main>
@@ -330,14 +359,16 @@
 
         const tg = window.Telegram.WebApp;
         tg.expand();
-        const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "test_user_123";
+        
+        const userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "test_user_123";
         let currentUser = { name: "Elite Miner", avatarHTML: '<i class="fa-solid fa-user-astronaut" style="font-size: 20px; color: var(--primary);"></i>' };
+        
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             currentUser.name = tg.initDataUnsafe.user.first_name || "Crypto Master";
-            if (tg.initDataUnsafe.user.photo_url) currentUser.avatarHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" style="width:100%; height:100%; object-fit:cover;">`;
+            if (tg.initDataUnsafe.user.photo_url) currentUser.avatarHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
         }
 
-        const botUsername = "Your_Bot_Username";
+        const botUsername = "Moneygainer_Bot";
 
         let S = {
             coins: 0, energy: 1000, passive: 0, adsWatched: 0, mineLvls: [0, 0, 0, 0], 
@@ -349,41 +380,45 @@
         let todayStr = new Date().toLocaleDateString();
 
         async function syncData() {
-            const gDoc = await db.collection("settings").doc("global").get();
-            if (gDoc.exists) appSettings = gDoc.data();
+            try {
+                const gDoc = await db.collection("settings").doc("global").get();
+                if (gDoc.exists) appSettings = gDoc.data();
 
-            const userRef = db.collection("users").doc(userId);
-            const doc = await userRef.get();
+                const userRef = db.collection("users").doc(userId);
+                const doc = await userRef.get();
 
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.passive > 0 && data.lastSeen) {
-                    const now = new Date();
-                    const last = new Date(data.lastSeen);
-                    const secondsOffline = Math.floor((now - last) / 1000);
-                    const earned = (data.passive / 3600) * Math.min(secondsOffline, 10800); 
-                    data.coins += earned;
-                    if(earned > 1) showToast(`Bot mined +${Math.floor(earned).toLocaleString()} while you were away!`);
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.passive > 0 && data.lastSeen) {
+                        const now = new Date();
+                        const last = new Date(data.lastSeen);
+                        const secondsOffline = Math.floor((now - last) / 1000);
+                        const earned = (data.passive / 3600) * Math.min(secondsOffline, 10800); 
+                        data.coins += earned;
+                        if(earned > 1) showToast(`Bot mined +${Math.floor(earned).toLocaleString()} while you were away!`);
+                    }
+                    S = { ...S, ...data };
+                } else {
+                    await userRef.set({ ...S, name: currentUser.name, joinedAt: new Date().toISOString() });
                 }
-                S = { ...S, ...data };
-            } else {
-                await userRef.set({ ...S, name: currentUser.name, joinedAt: new Date().toISOString() });
-            }
 
-            if (S.lastSpecialDate !== todayStr) { 
-                S.airdropAds = 0; S.boxUsed = 0; S.spinUsed = 0; S.lastSpecialDate = todayStr;
-            }
-            if (S.lastCheckinDate !== todayStr) {
-                let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                if (S.lastCheckinDate !== yesterday.toLocaleDateString() && S.lastCheckinDate !== "") { S.checkinStreak = 1; }
-            }
+                if (S.lastSpecialDate !== todayStr) { 
+                    S.airdropAds = 0; S.boxUsed = 0; S.spinUsed = 0; S.lastSpecialDate = todayStr;
+                }
+                if (S.lastCheckinDate !== todayStr) {
+                    let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+                    if (S.lastCheckinDate !== yesterday.toLocaleDateString() && S.lastCheckinDate !== "") { S.checkinStreak = 1; }
+                }
 
-            document.getElementById('header-name').innerText = currentUser.name;
-            document.getElementById('header-avatar').innerHTML = currentUser.avatarHTML;
-            document.getElementById('lb-user-avatar').innerHTML = currentUser.avatarHTML;
-            document.getElementById('refer-link').value = `https://t.me/${botUsername}?start=ref_${userId}`;
-
-            updateUI();
+                document.getElementById('header-name').innerText = currentUser.name;
+                document.getElementById('header-avatar').innerHTML = currentUser.avatarHTML;
+                document.getElementById('lb-user-avatar').innerHTML = currentUser.avatarHTML;
+                
+                updateUI();
+            } catch (error) {
+                console.error("Database sync failed:", error);
+                showToast("Network Error: Could not load full data", "error");
+            }
         }
 
         let saveTimeout;
@@ -708,7 +743,20 @@
         }
 
         window.onload = async () => {
-            await syncData(); 
+            document.getElementById('refer-link').value = `https://t.me/${botUsername}?start=ref_${userId}`;
+
+            try {
+                await syncData(); 
+            } catch(e) {
+                console.error(e);
+            }
+
+            const loader = document.getElementById('loading-screen');
+            if(loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 400);
+            }
+
             setTimeout(checkDailyPopup, 1000); 
         };
     </script>
