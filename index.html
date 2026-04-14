@@ -350,20 +350,25 @@
         const userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "test_user_123";
         let currentUser = { name: "Elite Miner", avatarHTML: '<i class="fa-solid fa-user-astronaut" style="font-size: 20px; color: var(--primary);"></i>' };
         
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            currentUser.name = tg.initDataUnsafe.user.first_name || "Crypto Master";
-            if (tg.initDataUnsafe.user.photo_url) currentUser.avatarHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-        }
-
-        const botUsername = "Moneygainer_Bot";
-
+        // BUG FIX: Added photo_url to the default S object so it saves to Firebase!
         let S = {
             coins: 0, energy: 1000, passive: 0, adsWatched: 0, mineLvls: [0, 0, 0, 0], 
             tapPower: 1, maxEnergy: 1000, energyRegen: 2, 
             airdropAds: 0, checkinStreak: 1, lastCheckinDate: "",
             boxUsed: 0, spinUsed: 0, lastSpecialDate: "", lastSeen: "", referrals: 0,
-            isBanned: false
+            isBanned: false, photo_url: "" 
         };
+        
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            currentUser.name = tg.initDataUnsafe.user.first_name || "Crypto Master";
+            S.photo_url = tg.initDataUnsafe.user.photo_url || ""; // Extract photo from Telegram
+            
+            if (tg.initDataUnsafe.user.photo_url) {
+                currentUser.avatarHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+        }
+
+        const botUsername = "Moneygainer_Bot";
         let appSettings = {};
         let todayStr = new Date().toLocaleDateString();
 
@@ -393,7 +398,13 @@
                         if(earned > 1) showToast(`Bot mined +${Math.floor(earned).toLocaleString()} while you were away!`);
                     }
                     S = { ...S, ...data };
+                    
+                    // Always ensure latest photo_url is saved back to DB if they changed it
+                    if(S.photo_url !== (data.photo_url || "")) {
+                        userRef.update({ photo_url: S.photo_url, name: currentUser.name });
+                    }
                 } else {
+                    // This will now push photo_url along with other data for new users
                     await userRef.set({ ...S, name: currentUser.name, joinedAt: new Date().toISOString() });
                 }
 
@@ -416,7 +427,6 @@
                 
                 updateUI();
                 
-                // DATA LOAD HOYAR POR POPUP CHECK KORBE
                 checkDailyPopup(); 
                 
             } catch (error) {
@@ -650,15 +660,11 @@
             if(document.getElementById('tab-ranks').classList.contains('active')){ renderLeaderboard(); }
         }
 
-        // ==========================================
-        // BUG FIX: LOCAL CACHE CHECK ADDED HERE 
-        // ==========================================
         function checkDailyPopup() { 
             let localCache = JSON.parse(localStorage.getItem('crypto_pro_v15') || "{}");
             
-            // Ensures it ONLY opens if it's genuinely a new day in both DB and Local Storage
             if (S.lastCheckinDate === todayStr || localCache.lastCheckinDate === todayStr) { 
-                return; // Block the popup!
+                return;
             } 
             
             document.getElementById('daily-modal').style.display = 'flex'; 
