@@ -262,6 +262,34 @@
                 <button id="btn-spin" class="btn-3d btn-3d-green" style="width: auto; padding: 8px 16px;" onclick="triggerAdForSpecial('spin', this)">SPIN</button>
             </div>
 
+            <div class="section-title" style="margin-top: 25px;">COMMUNITY</div>
+            <div class="card horizontal" style="border-color: #0088cc;">
+                <div class="card-icon" style="color: #0088cc;"><i class="fa-brands fa-telegram"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800;">Official Channel</h4>
+                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+100,000 Coins</p>
+                </div>
+                <button class="btn-3d btn-3d-blue" style="width: auto; padding: 8px 16px;" onclick="window.open('https://t.me/')">JOIN</button>
+            </div>
+
+            <div class="section-title" style="margin-top: 25px;">INFINITE AD TASKS</div>
+            <div class="card horizontal" style="border-color: var(--accent); margin-bottom: 12px;">
+                <div class="card-icon" style="color: var(--accent);"><i class="fa-solid fa-infinity"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800;">Mini Ads Loop</h4>
+                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+10,000 Coins</p>
+                </div>
+                <button class="btn-3d btn-3d-pink" style="width: auto; padding: 8px 16px;" onclick="showAdsgramAd(10000, 'task', this)"><i class="fa-solid fa-play"></i></button>
+            </div>
+            <div class="card horizontal" style="border-color: var(--primary);">
+                <div class="card-icon" style="color: var(--primary);"><i class="fa-solid fa-film"></i></div>
+                <div style="flex:1; margin-left: 12px;">
+                    <h4 style="font-size: 14px; font-weight: 800;">Mega Commercial</h4>
+                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+30,000 Coins</p>
+                </div>
+                <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 8px 16px;" onclick="showAdsgramAd(30000, 'task', this)"><i class="fa-solid fa-play"></i></button>
+            </div>
+            
             <div class="section-title" style="margin-top: 25px;">ADMIN TASKS & OFFERS</div>
             <div id="dynamic-tasks-list">
                 <p style="text-align: center; color: var(--muted); font-size: 12px;">Loading tasks...</p>
@@ -367,9 +395,15 @@
         let appSettings = {};
         let todayStr = new Date().toLocaleDateString();
 
+        // HELPER FUNCTION TO FORCE SAVE
+        function forceImmediateSave() {
+            if(S.isBanned) return;
+            localStorage.setItem('crypto_pro_v15', JSON.stringify(S));
+            db.collection("users").doc(userId).update(S).catch(e => console.error(e));
+        }
+
         async function syncData() {
             try {
-                // Fetch user data first to check ban status
                 const userRef = db.collection("users").doc(userId);
                 const doc = await userRef.get();
 
@@ -377,7 +411,7 @@
                     const data = doc.data();
                     if(data.isBanned) {
                         document.getElementById('banned-screen').style.display = 'flex';
-                        return; // Stop execution if banned
+                        return;
                     }
                     if (data.passive > 0 && data.lastSeen) {
                         const now = new Date();
@@ -421,17 +455,21 @@
         // Fetch tasks dynamically based on order set in Admin
         async function loadDynamicTasks() {
             try {
-                const tasksSnap = await db.collection("tasks").orderBy("order").get();
+                // Not using orderBy to avoid Firebase index errors, doing manual sorting instead
+                const tasksSnap = await db.collection("tasks").get();
+                let taskArray = [];
+                tasksSnap.forEach(doc => taskArray.push({ id: doc.id, ...doc.data() }));
+                taskArray.sort((a, b) => (a.order || 99) - (b.order || 99));
+
                 const taskContainer = document.getElementById('dynamic-tasks-list');
                 taskContainer.innerHTML = "";
 
-                if (tasksSnap.empty) {
+                if (taskArray.length === 0) {
                     taskContainer.innerHTML = '<p style="text-align: center; color: var(--muted); font-size: 12px;">No active tasks available right now.</p>';
                     return;
                 }
 
-                tasksSnap.forEach(doc => {
-                    const t = doc.data();
+                taskArray.forEach(t => {
                     taskContainer.innerHTML += `
                     <div class="card horizontal" style="border-color: var(--primary); margin-bottom: 12px;">
                         <div class="card-icon" style="color: var(--primary); background: transparent;">
@@ -441,7 +479,7 @@
                             <h4 style="font-size: 14px; font-weight: 800;">${t.title}</h4>
                             <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+${t.reward.toLocaleString()} Coins</p>
                         </div>
-                        <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 8px 16px;" onclick="completeDynamicTask('${doc.id}', ${t.reward}, '${t.url}')">START</button>
+                        <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 8px 16px;" onclick="completeDynamicTask('${t.id}', ${t.reward}, '${t.url}')">START</button>
                     </div>`;
                 });
             } catch (error) {
@@ -449,20 +487,18 @@
             }
         }
 
-        // Handle dynamic task completion
         window.completeDynamicTask = (taskId, rewardAmount, url) => {
-            // Store completed task in user's profile to prevent abuse if needed, here simple add
             window.open(url, '_blank');
             setTimeout(() => {
                 S.coins += rewardAmount;
                 showToast(`Task Completed! +${rewardAmount.toLocaleString()} Coins`);
                 updateUI(); save();
-            }, 3000); // 3 sec delay to simulate watching/joining
+            }, 3000); 
         }
 
         let saveTimeout;
         function save() {
-            if(S.isBanned) return; // don't save if banned
+            if(S.isBanned) return; 
             localStorage.setItem('crypto_pro_v15', JSON.stringify(S));
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
@@ -493,7 +529,7 @@
                 btnElement.style.pointerEvents = "none";
             }
 
-            const blockId = appSettings.ads_block_id || "int-27577"; // Use global setting if exists
+            const blockId = appSettings.ads_block_id || "int-27577"; 
 
             if (window.Adsgram) {
                 const AdCtrl = window.Adsgram.init({ blockId: blockId });
@@ -506,17 +542,19 @@
                     
                     if (type === 'airdrop_vip') { 
                         S.airdropAds++; S.coins += 100000; showToast(`VIP Completed! +100,000 Coins`); 
+                        forceImmediateSave();
                     } else if (type === 'checkin') { 
                         S.lastCheckinDate = todayStr; S.checkinStreak++; S.coins += rewardValue; 
                         showToast(`10X CLAIMED! +${rewardValue.toLocaleString()} Coins`); closeModal('daily-modal'); 
+                        forceImmediateSave();
                     } else if (type === 'energy') { 
-                        S.energy = S.maxEnergy; showToast("Energy Fully Restored!"); 
+                        S.energy = S.maxEnergy; showToast("Energy Fully Restored!"); save();
                     } else if (type === 'turbo') { 
-                        showToast("Turbo Activated!"); 
+                        showToast("Turbo Activated!"); save();
                     } else { 
-                        S.coins += rewardValue; showToast(`Reward +${rewardValue.toLocaleString()} Coins!`); 
+                        S.coins += rewardValue; showToast(`Reward +${rewardValue.toLocaleString()} Coins!`); save();
                     }
-                    updateUI(); save();
+                    updateUI(); 
                 }).catch(() => {
                     if (btnElement) {
                         btnElement.innerHTML = origBtn;
@@ -581,7 +619,8 @@
                 S.checkinStreak++; 
                 showToast(`Claimed +${base.toLocaleString()} Coins!`); 
                 closeModal('daily-modal'); 
-                updateUI(); save(); 
+                updateUI(); 
+                forceImmediateSave(); // Instant save 
             }
         }
 
@@ -726,7 +765,7 @@
                 if (index === 2) S.energyRegen += mines[index].earn;
                 if (index === 3) S.passive += mines[index].earn;
                 showToast(`Upgraded ${mines[index].name}!`);
-                updateUI(); renderMines(); save();
+                updateUI(); renderMines(); forceImmediateSave(); // force save upon upgrade
             } else { showToast("Not enough coins!", "error"); }
         }
 
