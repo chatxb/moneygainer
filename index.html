@@ -262,35 +262,7 @@
                 <button id="btn-spin" class="btn-3d btn-3d-green" style="width: auto; padding: 8px 16px;" onclick="triggerAdForSpecial('spin', this)">SPIN</button>
             </div>
 
-            <div class="section-title" style="margin-top: 25px;">COMMUNITY</div>
-            <div class="card horizontal" style="border-color: #0088cc;">
-                <div class="card-icon" style="color: #0088cc;"><i class="fa-brands fa-telegram"></i></div>
-                <div style="flex:1; margin-left: 12px;">
-                    <h4 style="font-size: 14px; font-weight: 800;">Official Channel</h4>
-                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+100,000 Coins</p>
-                </div>
-                <button class="btn-3d btn-3d-blue" style="width: auto; padding: 8px 16px;" onclick="window.open('https://t.me/')">JOIN</button>
-            </div>
-
-            <div class="section-title" style="margin-top: 25px;">INFINITE AD TASKS</div>
-            <div class="card horizontal" style="border-color: var(--accent); margin-bottom: 12px;">
-                <div class="card-icon" style="color: var(--accent);"><i class="fa-solid fa-infinity"></i></div>
-                <div style="flex:1; margin-left: 12px;">
-                    <h4 style="font-size: 14px; font-weight: 800;">Mini Ads Loop</h4>
-                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+10,000 Coins</p>
-                </div>
-                <button class="btn-3d btn-3d-pink" style="width: auto; padding: 8px 16px;" onclick="showAdsgramAd(10000, 'task', this)"><i class="fa-solid fa-play"></i></button>
-            </div>
-            <div class="card horizontal" style="border-color: var(--primary);">
-                <div class="card-icon" style="color: var(--primary);"><i class="fa-solid fa-film"></i></div>
-                <div style="flex:1; margin-left: 12px;">
-                    <h4 style="font-size: 14px; font-weight: 800;">Mega Commercial</h4>
-                    <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+30,000 Coins</p>
-                </div>
-                <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 8px 16px;" onclick="showAdsgramAd(30000, 'task', this)"><i class="fa-solid fa-play"></i></button>
-            </div>
-            
-            <div class="section-title" style="margin-top: 25px;">ADMIN TASKS & OFFERS</div>
+            <div class="section-title" style="margin-top: 25px;">TASKS & OFFERS</div>
             <div id="dynamic-tasks-list">
                 <p style="text-align: center; color: var(--muted); font-size: 12px;">Loading tasks...</p>
             </div>
@@ -395,7 +367,6 @@
         let appSettings = {};
         let todayStr = new Date().toLocaleDateString();
 
-        // HELPER FUNCTION TO FORCE SAVE
         function forceImmediateSave() {
             if(S.isBanned) return;
             localStorage.setItem('crypto_pro_v15', JSON.stringify(S));
@@ -426,11 +397,9 @@
                     await userRef.set({ ...S, name: currentUser.name, joinedAt: new Date().toISOString() });
                 }
 
-                // Fetch Global Settings
                 const gDoc = await db.collection("settings").doc("global").get();
                 if (gDoc.exists) appSettings = gDoc.data();
 
-                // Load dynamic tasks from Admin
                 loadDynamicTasks();
 
                 if (S.lastSpecialDate !== todayStr) { 
@@ -446,20 +415,22 @@
                 document.getElementById('lb-user-avatar').innerHTML = currentUser.avatarHTML;
                 
                 updateUI();
+                
+                // DATA LOAD HOYAR POR POPUP CHECK KORBE
+                checkDailyPopup(); 
+                
             } catch (error) {
                 console.error("Database sync failed:", error);
                 showToast("Network Error: Could not load full data", "error");
             }
         }
 
-        // Fetch tasks dynamically based on order set in Admin
         async function loadDynamicTasks() {
             try {
-                // Not using orderBy to avoid Firebase index errors, doing manual sorting instead
                 const tasksSnap = await db.collection("tasks").get();
                 let taskArray = [];
                 tasksSnap.forEach(doc => taskArray.push({ id: doc.id, ...doc.data() }));
-                taskArray.sort((a, b) => (a.order || 99) - (b.order || 99));
+                taskArray.sort((a,b) => (a.order || 99) - (b.order || 99));
 
                 const taskContainer = document.getElementById('dynamic-tasks-list');
                 taskContainer.innerHTML = "";
@@ -470,16 +441,20 @@
                 }
 
                 taskArray.forEach(t => {
+                    let iconHtml = t.logo.includes('fa-') ? `<i class="${t.logo}"></i>` : `<img src="${t.logo}" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;">`;
+                    let btnAction = t.taskType === 'ad' ? `executeAdTask(${t.reward}, this)` : `executeLinkTask('${t.url}', ${t.reward})`;
+                    let btnIcon = t.taskType === 'ad' ? '<i class="fa-solid fa-play"></i>' : 'START';
+
                     taskContainer.innerHTML += `
                     <div class="card horizontal" style="border-color: var(--primary); margin-bottom: 12px;">
                         <div class="card-icon" style="color: var(--primary); background: transparent;">
-                            <img src="${t.logo}" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;">
+                            ${iconHtml}
                         </div>
                         <div style="flex:1; margin-left: 12px;">
                             <h4 style="font-size: 14px; font-weight: 800;">${t.title}</h4>
                             <p style="font-size: 11px; color: var(--gold); font-weight: 800;">+${t.reward.toLocaleString()} Coins</p>
                         </div>
-                        <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 8px 16px;" onclick="completeDynamicTask('${t.id}', ${t.reward}, '${t.url}')">START</button>
+                        <button class="btn-3d btn-3d-cyan" style="width: auto; padding: 8px 16px;" onclick="${btnAction}">${btnIcon}</button>
                     </div>`;
                 });
             } catch (error) {
@@ -487,13 +462,17 @@
             }
         }
 
-        window.completeDynamicTask = (taskId, rewardAmount, url) => {
+        window.executeLinkTask = (url, rewardAmount) => {
             window.open(url, '_blank');
             setTimeout(() => {
                 S.coins += rewardAmount;
                 showToast(`Task Completed! +${rewardAmount.toLocaleString()} Coins`);
-                updateUI(); save();
+                updateUI(); forceImmediateSave();
             }, 3000); 
+        }
+
+        window.executeAdTask = (rewardAmount, btnElement) => {
+            showAdsgramAd(rewardAmount, 'dynamic_task', btnElement);
         }
 
         let saveTimeout;
@@ -525,7 +504,7 @@
             let origBtn = "";
             if (btnElement) {
                 origBtn = btnElement.innerHTML;
-                btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Wait...';
+                btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                 btnElement.style.pointerEvents = "none";
             }
 
@@ -552,7 +531,7 @@
                     } else if (type === 'turbo') { 
                         showToast("Turbo Activated!"); save();
                     } else { 
-                        S.coins += rewardValue; showToast(`Reward +${rewardValue.toLocaleString()} Coins!`); save();
+                        S.coins += rewardValue; showToast(`Reward +${rewardValue.toLocaleString()} Coins!`); forceImmediateSave();
                     }
                     updateUI(); 
                 }).catch(() => {
@@ -620,7 +599,7 @@
                 showToast(`Claimed +${base.toLocaleString()} Coins!`); 
                 closeModal('daily-modal'); 
                 updateUI(); 
-                forceImmediateSave(); // Instant save 
+                forceImmediateSave(); 
             }
         }
 
@@ -671,7 +650,21 @@
             if(document.getElementById('tab-ranks').classList.contains('active')){ renderLeaderboard(); }
         }
 
-        function checkDailyPopup() { if (S.lastCheckinDate !== todayStr) { document.getElementById('daily-modal').style.display = 'flex'; renderCheckinGrid(); } }
+        // ==========================================
+        // BUG FIX: LOCAL CACHE CHECK ADDED HERE 
+        // ==========================================
+        function checkDailyPopup() { 
+            let localCache = JSON.parse(localStorage.getItem('crypto_pro_v15') || "{}");
+            
+            // Ensures it ONLY opens if it's genuinely a new day in both DB and Local Storage
+            if (S.lastCheckinDate === todayStr || localCache.lastCheckinDate === todayStr) { 
+                return; // Block the popup!
+            } 
+            
+            document.getElementById('daily-modal').style.display = 'flex'; 
+            renderCheckinGrid(); 
+        }
+
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         
         function renderCheckinGrid() {
@@ -719,7 +712,7 @@
             if (pendingSpecialType === 'box') S.boxUsed++;
             if (pendingSpecialType === 'spin') S.spinUsed++;
             showToast(`Awesome! +${pendingSpecialReward.toLocaleString()} Coins added!`);
-            closeModal('reward-modal'); updateUI(); save();
+            closeModal('reward-modal'); updateUI(); forceImmediateSave();
         }
 
         const clicker = document.getElementById('clicker');
@@ -765,7 +758,7 @@
                 if (index === 2) S.energyRegen += mines[index].earn;
                 if (index === 3) S.passive += mines[index].earn;
                 showToast(`Upgraded ${mines[index].name}!`);
-                updateUI(); renderMines(); forceImmediateSave(); // force save upon upgrade
+                updateUI(); renderMines(); forceImmediateSave(); 
             } else { showToast("Not enough coins!", "error"); }
         }
 
@@ -836,20 +829,12 @@
 
         window.onload = async () => {
             document.getElementById('refer-link').value = `https://t.me/${botUsername}?start=ref_${userId}`;
-
-            try {
-                await syncData(); 
-            } catch(e) {
-                console.error(e);
-            }
-
+            try { await syncData(); } catch(e) { console.error(e); }
             const loader = document.getElementById('loading-screen');
             if(loader) {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.style.display = 'none', 400);
             }
-
-            setTimeout(checkDailyPopup, 1000); 
         };
     </script>
 </body>
