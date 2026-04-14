@@ -770,13 +770,13 @@
         }
 
         // ==========================================
-        // BUG FIX: TOP 3 + EXACT RANK LOGIC
+        // BUG FIX: FAIL-PROOF EXACT RANK LOGIC
         // ==========================================
         async function renderLeaderboard() {
             try {
                 const lbList = document.getElementById('leaderboard-list');
                 
-                // EXACTLY 3 JON K FETCH KORBE
+                // Fetch EXACTLY Top 3 Users from Firebase
                 const snap = await db.collection("users").orderBy("coins", "desc").limit(3).get();
                 let playersData = [];
                 snap.forEach(doc => {
@@ -791,17 +791,18 @@
                     });
                 });
 
-                // DIRECT FIREBASE COUNT QUERY DIYE EXACT RANK BER KORA
-                let userExactRank = "-";
+                // Fail-proof method to count exact rank using Firebase web v8/v9 compat 
+                let userExactRank = 1;
                 try {
-                    let myCoins = Number(S.coins) || 0;
-                    const higherRankedSnap = await db.collection("users").where("coins", ">", myCoins).count().get();
-                    userExactRank = higherRankedSnap.data().count + 1;
+                    let myCoins = Math.floor(Number(S.coins)) || 0;
+                    // Get size directly without `.count()` API to avoid compat SDK missing function errors
+                    const higherRankedSnap = await db.collection("users").where("coins", ">", myCoins).get();
+                    userExactRank = higherRankedSnap.size + 1;
                 } catch(e) {
                     console.log("Error calculating exact rank", e);
+                    userExactRank = "-"; 
                 }
 
-                // TOP 3 RENDER KORA WITH 3 DIFFERENT BADGES
                 lbList.innerHTML = playersData.map((p, i) => {
                     let color = i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : "#CD7F32";
                     let badge = i === 0 ? '<i class="fa-solid fa-crown"></i>' : i === 1 ? '<i class="fa-solid fa-medal"></i>' : '<i class="fa-solid fa-award"></i>';
@@ -825,11 +826,16 @@
                     </div>`;
                 }).join('');
 
-                // NIJER POSITION UPDATE KORA
                 document.getElementById('lb-user-coins-bottom').innerText = Math.floor(S.coins).toLocaleString();
                 
                 let bottomRankEl = document.getElementById('lb-user-rank');
-                if (userExactRank === 1) {
+                
+                if (userExactRank === "-") {
+                    bottomRankEl.innerText = `#-`;
+                    bottomRankEl.style.color = 'var(--muted)';
+                    bottomRankEl.style.textShadow = 'none';
+                    bottomRankEl.style.fontSize = '24px';
+                } else if (userExactRank === 1) {
                     bottomRankEl.innerHTML = '<i class="fa-solid fa-crown"></i>';
                     bottomRankEl.style.color = '#FFD700';
                     bottomRankEl.style.textShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
@@ -839,7 +845,6 @@
                     bottomRankEl.style.color = 'var(--primary)';
                     bottomRankEl.style.textShadow = '0 0 15px rgba(0, 210, 255, 0.5)';
                     
-                    // JODI NUMBER ONEK BORO HOY TAHOLE FONT SIZE CHOTO KORBE
                     if (userExactRank > 9999) bottomRankEl.style.fontSize = '12px';
                     else if (userExactRank > 999) bottomRankEl.style.fontSize = '15px';
                     else if (userExactRank > 99) bottomRankEl.style.fontSize = '18px';
