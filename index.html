@@ -93,7 +93,6 @@
         /* BANNED SCREEN CSS */
         #banned-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 100000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;}
 
-        /* MOBILE RESPONSIVENESS */
         @media (max-width: 380px) {
             .main-coin { width: 180px; height: 180px; font-size: 65px; }
             .balance { font-size: 20px; }
@@ -275,7 +274,9 @@
                 <p style="font-size: 11px; color: var(--muted); margin-top: 5px;">Top players update in real-time</p>
             </div>
             
-            <div id="leaderboard-list"></div>
+            <div id="leaderboard-list">
+                <p style="text-align: center; color: var(--muted); font-size: 12px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading Top Miners...</p>
+            </div>
             
             <div class="section-title" style="margin-top: 35px; color: var(--primary); display:flex; align-items:center; gap:8px;">
                 <i class="fa-solid fa-crosshairs"></i> YOUR POSITION
@@ -283,7 +284,8 @@
             
             <div class="card horizontal" style="border-color: var(--primary); background: linear-gradient(90deg, rgba(0, 210, 255, 0.12), rgba(0, 210, 255, 0.03)); padding: 18px 16px; box-shadow: 0 5px 25px rgba(0, 210, 255, 0.15); border-radius: 16px; position: relative; overflow: hidden;">
                 <div class="user-rank-highlight"></div>
-                <div class="card-icon" style="color: var(--primary); background: transparent; border: none; font-size: 24px; font-weight: 900; width: 45px; text-shadow: 0 0 15px rgba(0,210,255,0.5);" id="lb-user-rank">#1</div>
+                
+                <div class="card-icon" style="color: var(--primary); background: transparent; border: none; font-size: 24px; font-weight: 900; width: 45px; text-shadow: 0 0 15px rgba(0,210,255,0.5);" id="lb-user-rank">-</div>
                 
                 <div id="lb-user-avatar" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 15px; border: 2px solid var(--primary); background: var(--bg); box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);"></div>
                 
@@ -350,7 +352,6 @@
         const userId = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "test_user_123";
         let currentUser = { name: "Elite Miner", avatarHTML: '<i class="fa-solid fa-user-astronaut" style="font-size: 20px; color: var(--primary);"></i>' };
         
-        // BUG FIX: Added photo_url to the default S object so it saves to Firebase!
         let S = {
             coins: 0, energy: 1000, passive: 0, adsWatched: 0, mineLvls: [0, 0, 0, 0], 
             tapPower: 1, maxEnergy: 1000, energyRegen: 2, 
@@ -361,7 +362,7 @@
         
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             currentUser.name = tg.initDataUnsafe.user.first_name || "Crypto Master";
-            S.photo_url = tg.initDataUnsafe.user.photo_url || ""; // Extract photo from Telegram
+            S.photo_url = tg.initDataUnsafe.user.photo_url || "";
             
             if (tg.initDataUnsafe.user.photo_url) {
                 currentUser.avatarHTML = `<img src="${tg.initDataUnsafe.user.photo_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
@@ -370,7 +371,7 @@
 
         const botUsername = "Moneygainer_Bot";
         let appSettings = {};
-        let todayStr = new Date().toLocaleDateString();
+        const todayStr = new Date().toDateString(); 
 
         function forceImmediateSave() {
             if(S.isBanned) return;
@@ -382,6 +383,9 @@
             try {
                 const userRef = db.collection("users").doc(userId);
                 const doc = await userRef.get();
+
+                const startParam = tg.initDataUnsafe?.start_param || "";
+                let referrerId = startParam.startsWith("ref_") ? startParam.replace("ref_", "") : null;
 
                 if (doc.exists) {
                     const data = doc.data();
@@ -397,15 +401,28 @@
                         data.coins += earned;
                         if(earned > 1) showToast(`Bot mined +${Math.floor(earned).toLocaleString()} while you were away!`);
                     }
+                    
+                    let localCache = JSON.parse(localStorage.getItem('crypto_pro_v15') || "{}");
+                    if (localCache.lastCheckinDate === todayStr && data.lastCheckinDate !== todayStr) {
+                        data.lastCheckinDate = todayStr;
+                        data.checkinStreak = localCache.checkinStreak || data.checkinStreak;
+                    }
+                    
                     S = { ...S, ...data };
                     
-                    // Always ensure latest photo_url is saved back to DB if they changed it
                     if(S.photo_url !== (data.photo_url || "")) {
                         userRef.update({ photo_url: S.photo_url, name: currentUser.name });
                     }
                 } else {
-                    // This will now push photo_url along with other data for new users
                     await userRef.set({ ...S, name: currentUser.name, joinedAt: new Date().toISOString() });
+                    
+                    if(referrerId && referrerId !== userId) {
+                        db.collection("users").doc(referrerId).update({
+                            coins: firebase.firestore.FieldValue.increment(50000),
+                            referrals: firebase.firestore.FieldValue.increment(1)
+                        }).then(() => console.log("Referrer rewarded!"))
+                          .catch(e => console.log("Referral update blocked by rules:", e));
+                    }
                 }
 
                 const gDoc = await db.collection("settings").doc("global").get();
@@ -418,7 +435,7 @@
                 }
                 if (S.lastCheckinDate !== todayStr) {
                     let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                    if (S.lastCheckinDate !== yesterday.toLocaleDateString() && S.lastCheckinDate !== "") { S.checkinStreak = 1; }
+                    if (S.lastCheckinDate !== yesterday.toDateString() && S.lastCheckinDate !== "") { S.checkinStreak = 1; }
                 }
 
                 document.getElementById('header-name').innerText = currentUser.name;
@@ -426,7 +443,6 @@
                 document.getElementById('lb-user-avatar').innerHTML = currentUser.avatarHTML;
                 
                 updateUI();
-                
                 checkDailyPopup(); 
                 
             } catch (error) {
@@ -657,16 +673,13 @@
             document.getElementById('spin-limit').innerText = `${S.spinUsed}/${maxAds}`;
             let btnSpin = document.getElementById('btn-spin');
             if (S.spinUsed >= maxAds) { btnSpin.classList.add('disabled'); btnSpin.innerText = 'DONE'; }
-            if(document.getElementById('tab-ranks').classList.contains('active')){ renderLeaderboard(); }
         }
 
         function checkDailyPopup() { 
             let localCache = JSON.parse(localStorage.getItem('crypto_pro_v15') || "{}");
-            
             if (S.lastCheckinDate === todayStr || localCache.lastCheckinDate === todayStr) { 
-                return;
+                return; 
             } 
-            
             document.getElementById('daily-modal').style.display = 'flex'; 
             renderCheckinGrid(); 
         }
@@ -756,66 +769,86 @@
             }).join('');
         }
 
-        window.buyMine = (index, cost) => {
-            if (S.coins >= cost) {
-                S.coins -= cost; S.mineLvls[index]++;
-                if (index === 0) S.tapPower += mines[index].earn;
-                if (index === 1) S.maxEnergy += mines[index].earn;
-                if (index === 2) S.energyRegen += mines[index].earn;
-                if (index === 3) S.passive += mines[index].earn;
-                showToast(`Upgraded ${mines[index].name}!`);
-                updateUI(); renderMines(); forceImmediateSave(); 
-            } else { showToast("Not enough coins!", "error"); }
-        }
+        // ==========================================
+        // BUG FIX: TOP 3 + EXACT RANK LOGIC
+        // ==========================================
+        async function renderLeaderboard() {
+            try {
+                const lbList = document.getElementById('leaderboard-list');
+                
+                // EXACTLY 3 JON K FETCH KORBE
+                const snap = await db.collection("users").orderBy("coins", "desc").limit(3).get();
+                let playersData = [];
+                snap.forEach(doc => {
+                    let d = doc.data();
+                    let avatar = d.photo_url ? `<img src="${d.photo_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : '<i class="fa-solid fa-user-astronaut" style="font-size: 20px; color: var(--primary);"></i>';
+                    playersData.push({
+                        id: doc.id,
+                        name: d.name || "Unknown Miner",
+                        coins: Math.floor(d.coins || 0),
+                        avatarBox: avatar,
+                        isUser: doc.id === userId
+                    });
+                });
 
-        function renderLeaderboard() {
-            let playersData = [
-                { name: currentUser.name, coins: Math.floor(S.coins), avatarBox: currentUser.avatarHTML, isUser: true }, 
-                { name: "Bot_Alpha", coins: 5000000, avatarBox: '<img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" style="width:80%;">', isUser: false },
-                { name: "NoobMaster", coins: 1500000, avatarBox: '<img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" style="width:80%;">', isUser: false }
-            ];
-            
-            playersData.sort((a, b) => b.coins - a.coins);
-            
-            let userRankIndex = playersData.findIndex(p => p.isUser);
-            let userRankNum = userRankIndex + 1;
+                // DIRECT FIREBASE COUNT QUERY DIYE EXACT RANK BER KORA
+                let userExactRank = "-";
+                try {
+                    let myCoins = Number(S.coins) || 0;
+                    const higherRankedSnap = await db.collection("users").where("coins", ">", myCoins).count().get();
+                    userExactRank = higherRankedSnap.data().count + 1;
+                } catch(e) {
+                    console.log("Error calculating exact rank", e);
+                }
 
-            document.getElementById('leaderboard-list').innerHTML = playersData.slice(0, 5).map((p, i) => {
-                let isTop3 = i < 3;
-                let color = i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "var(--text)";
-                let badge = i === 0 ? '<i class="fa-solid fa-crown"></i>' : i < 3 ? '<i class="fa-solid fa-medal"></i>' : `#${i + 1}`;
-                let border = i < 3 ? color : 'var(--border)';
-                let glow = i === 0 ? `box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);` : '';
-                let bg = p.isUser ? 'linear-gradient(90deg, rgba(0, 210, 255, 0.1), var(--card))' : 'var(--card)';
+                // TOP 3 RENDER KORA WITH 3 DIFFERENT BADGES
+                lbList.innerHTML = playersData.map((p, i) => {
+                    let color = i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : "#CD7F32";
+                    let badge = i === 0 ? '<i class="fa-solid fa-crown"></i>' : i === 1 ? '<i class="fa-solid fa-medal"></i>' : '<i class="fa-solid fa-award"></i>';
+                    let glow = i === 0 ? `box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);` : '';
+                    let bg = p.isUser ? 'linear-gradient(90deg, rgba(0, 210, 255, 0.1), var(--card))' : 'var(--card)';
 
-                return `
-                <div class="card horizontal rank-card-premium" style="margin-bottom: 12px; padding: 15px; border-color: ${border}; background: ${bg}; ${glow}">
-                    <div style="width: 30px; font-size: ${isTop3 ? '22px' : '16px'}; font-weight: 800; color: ${color}; text-align: center; text-shadow: 0 0 10px ${color};">${badge}</div>
-                    
-                    <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.05); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 15px; border: 2px solid ${isTop3 ? color : 'rgba(255,255,255,0.1)'}; padding: 2px;">
-                        <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg);">
-                            ${p.avatarBox}
+                    return `
+                    <div class="card horizontal rank-card-premium" style="margin-bottom: 12px; padding: 15px; border-color: ${color}; background: ${bg}; ${glow}">
+                        <div style="width: 30px; font-size: 22px; font-weight: 800; color: ${color}; text-align: center; text-shadow: 0 0 10px ${color};">${badge}</div>
+                        
+                        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.05); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 15px; border: 2px solid ${color}; padding: 2px;">
+                            <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg);">
+                                ${p.avatarBox}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div style="flex:1;">
-                        <h4 style="font-size: 15px; font-weight: 800; color: ${p.isUser ? 'var(--primary)' : 'var(--text)'};">${p.name} ${p.isUser ? '<i class="fa-solid fa-circle-check" style="font-size:12px; color:var(--success); margin-left:4px;"></i>' : ''}</h4>
-                        <p style="font-size: 13px; color: ${isTop3 ? color : 'var(--gold)'}; font-weight: 800; margin-top: 4px; letter-spacing: 0.5px;"><i class="fa-brands fa-bitcoin" style="margin-right: 4px;"></i>${p.coins.toLocaleString()}</p>
-                    </div>
-                </div>`;
-            }).join('');
+                        
+                        <div style="flex:1;">
+                            <h4 style="font-size: 15px; font-weight: 800; color: ${p.isUser ? 'var(--primary)' : 'var(--text)'};">${p.name} ${p.isUser ? '<i class="fa-solid fa-circle-check" style="font-size:12px; color:var(--success); margin-left:4px;"></i>' : ''}</h4>
+                            <p style="font-size: 13px; color: ${color}; font-weight: 800; margin-top: 4px; letter-spacing: 0.5px;"><i class="fa-brands fa-bitcoin" style="margin-right: 4px;"></i>${p.coins.toLocaleString()}</p>
+                        </div>
+                    </div>`;
+                }).join('');
 
-            document.getElementById('lb-user-coins-bottom').innerText = Math.floor(S.coins).toLocaleString();
-            
-            let bottomRankEl = document.getElementById('lb-user-rank');
-            if (userRankNum === 1) {
-                bottomRankEl.innerHTML = '<i class="fa-solid fa-crown"></i>';
-                bottomRankEl.style.color = '#FFD700';
-                bottomRankEl.style.textShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
-            } else {
-                bottomRankEl.innerText = `#${userRankNum}`;
-                bottomRankEl.style.color = 'var(--primary)';
-                bottomRankEl.style.textShadow = '0 0 15px rgba(0, 210, 255, 0.5)';
+                // NIJER POSITION UPDATE KORA
+                document.getElementById('lb-user-coins-bottom').innerText = Math.floor(S.coins).toLocaleString();
+                
+                let bottomRankEl = document.getElementById('lb-user-rank');
+                if (userExactRank === 1) {
+                    bottomRankEl.innerHTML = '<i class="fa-solid fa-crown"></i>';
+                    bottomRankEl.style.color = '#FFD700';
+                    bottomRankEl.style.textShadow = '0 0 15px rgba(255, 215, 0, 0.6)';
+                    bottomRankEl.style.fontSize = '24px';
+                } else {
+                    bottomRankEl.innerText = `#${userExactRank}`;
+                    bottomRankEl.style.color = 'var(--primary)';
+                    bottomRankEl.style.textShadow = '0 0 15px rgba(0, 210, 255, 0.5)';
+                    
+                    // JODI NUMBER ONEK BORO HOY TAHOLE FONT SIZE CHOTO KORBE
+                    if (userExactRank > 9999) bottomRankEl.style.fontSize = '12px';
+                    else if (userExactRank > 999) bottomRankEl.style.fontSize = '15px';
+                    else if (userExactRank > 99) bottomRankEl.style.fontSize = '18px';
+                    else bottomRankEl.style.fontSize = '24px';
+                }
+
+            } catch (error) {
+                console.error("Leaderboard Error:", error);
+                document.getElementById('leaderboard-list').innerHTML = '<p style="text-align:center; color:var(--accent);">Error loading ranks.</p>';
             }
         }
 
