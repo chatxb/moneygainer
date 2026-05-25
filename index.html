@@ -20,7 +20,7 @@
 
         :root {
             --bg: #0A0E17;
-            --surface: rgba(18, 25, 45, 0.75);
+            --surface: rgba(18, 25, 45, 0.8);
             --glass-stroke: rgba(255, 255, 255, 0.08);
             --primary: #5E5CE6;
             --primary-glow: #7B79FF;
@@ -31,6 +31,7 @@
             --text-secondary: #8E8E93;
             --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.2);
             --blur-bg: saturate(180%) blur(20px);
+            --ref-bg: #1C1C2E;
         }
 
         body.light {
@@ -40,6 +41,7 @@
             --text-primary: #1C1C1E;
             --text-secondary: #6C6C70;
             --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.05);
+            --ref-bg: #E8E8ED;
         }
 
         body {
@@ -53,7 +55,6 @@
             transition: background 0.3s ease;
         }
 
-        /* glassmorphic */
         .glass {
             background: var(--surface);
             backdrop-filter: var(--blur-bg);
@@ -99,7 +100,6 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px 16px 90px;
-            scroll-behavior: smooth;
         }
 
         .tab-content { display: none; animation: fadeUp 0.3s ease; }
@@ -180,6 +180,7 @@
         .btn-gold { background: linear-gradient(95deg, #FFD60A, #FF9F0A); box-shadow: 0 2px 12px rgba(255, 214, 10, 0.4); color: #1C1C1E; }
         .btn-green { background: linear-gradient(95deg, #30D158, #28A745); box-shadow: 0 2px 12px rgba(48, 209, 88, 0.3); }
         .btn-outline { background: transparent; box-shadow: none; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-disabled { opacity: 0.5; pointer-events: none; filter: grayscale(0.1); }
 
         .earn-card {
             background: var(--surface);
@@ -266,12 +267,6 @@
             margin: 20px 0 8px 6px;
         }
 
-        .rank-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
         .leaderboard-item {
             background: var(--surface);
             backdrop-filter: blur(16px);
@@ -298,6 +293,22 @@
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0) scale(0.9); }
             100% { opacity: 0; transform: translateY(-60px) scale(1.2); }
+        }
+        .ref-link-container {
+            background: var(--ref-bg);
+            border-radius: 60px;
+            padding: 6px 12px;
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .ref-link-container input {
+            background: transparent;
+            border: none;
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-primary);
         }
     </style>
 </head>
@@ -346,11 +357,14 @@
     <!-- MINE UPGRADES -->
     <div id="tab-mine" class="tab-content"><p class="section-badge">⚙️ UPGRADE RIG</p><div id="upgradesList"></div></div>
 
-    <!-- EARN (restored offers, button text "GO") -->
+    <!-- EARN (with completed tasks tracking) -->
     <div id="tab-earn" class="tab-content">
         <div class="glass" style="padding: 16px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between;"><div><i class="fa-solid fa-users"></i> <strong>REFERRAL ELITE</strong><p style="font-size:13px;">+50,000 per friend</p></div><span style="font-weight:800; font-size:20px;" id="refCount">0</span></div>
-            <div style="background: rgba(0,0,0,0.2); border-radius: 60px; padding: 6px 12px; margin-top: 12px; display: flex; gap: 8px;"><input type="text" id="refLink" readonly style="background: none; border: none; flex:1; font-size:13px;"><button class="btn-iphone btn-green" style="padding: 6px 16px;" onclick="copyReferralLink()">COPY</button></div>
+            <div class="ref-link-container">
+                <input type="text" id="refLink" readonly value="">
+                <button class="btn-iphone btn-green" style="padding: 6px 16px;" onclick="copyReferralLink()">COPY</button>
+            </div>
         </div>
 
         <p class="section-badge">🎁 MYSTERY & SPIN</p>
@@ -369,7 +383,7 @@
         <div id="tasksContainer" style="margin-bottom: 20px;"></div>
     </div>
 
-    <!-- RANKS (fixed realtime ranking top 3 + user rank) -->
+    <!-- RANKS (fixed: highest coins first) -->
     <div id="tab-ranks" class="tab-content">
         <div class="glass" style="text-align:center; padding: 18px;"><i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> <strong>TOP 3 MINERS</strong></div>
         <div id="leaderboardList" style="margin: 16px 0;"></div>
@@ -382,7 +396,7 @@
         </div>
     </div>
 
-    <!-- DROP TAB + Wallet Coming Soon -->
+    <!-- DROP TAB + Wallet -->
     <div id="tab-airdrop" class="tab-content">
         <div class="glass" style="text-align:center; padding: 22px; background: linear-gradient(145deg, #5E5CE610, #FF375F05);">
             <i class="fa-solid fa-crown" style="font-size: 48px; color: var(--accent-gold);"></i>
@@ -428,16 +442,18 @@
     let userPhoto = tg.initDataUnsafe?.user?.photo_url || "";
     let userName = tg.initDataUnsafe?.user?.first_name || "Crypto Miner";
 
+    // Global state
     let state = {
         coins: 5000, energy: 1000, maxEnergy: 1000, tapPower: 1, passiveIncome: 0, energyRegen: 2,
         upgrades: [0,0,0,0],
         airdropDone: 0, lastAirdropDate: "",
         boxUsed: 0, spinUsed: 0, lastSpecialDate: "",
-        referrals: 0
+        referrals: 0,
+        completedTasks: {}  // store taskId -> true
     };
 
     try {
-        const saved = localStorage.getItem('cryptox_final');
+        const saved = localStorage.getItem('cryptox_final_v3');
         if(saved) {
             const p = JSON.parse(saved);
             Object.assign(state, p);
@@ -446,6 +462,7 @@
             state.energyRegen = 2 + ((state.upgrades[2] || 0));
             state.passiveIncome = (state.upgrades[3] || 0) * 1000;
             if(state.energy > state.maxEnergy) state.energy = state.maxEnergy;
+            if(!state.completedTasks) state.completedTasks = {};
         }
     } catch(e) {}
 
@@ -475,7 +492,7 @@
         boxBtn.style.opacity = state.boxUsed>=5 ? 0.5 : 1; spinBtn.style.opacity = state.spinUsed>=5 ? 0.5 : 1;
     }
 
-    function saveLocal() { localStorage.setItem('cryptox_final', JSON.stringify(state)); }
+    function saveLocal() { localStorage.setItem('cryptox_final_v3', JSON.stringify(state)); }
     let debounce;
     function pushDB() {
         clearTimeout(debounce);
@@ -483,13 +500,14 @@
             db.collection("users").doc(userId).update({
                 coins: state.coins, upgrades: state.upgrades, airdropDone: state.airdropDone,
                 boxUsed: state.boxUsed, spinUsed: state.spinUsed, referrals: state.referrals,
-                energy: state.energy, lastAirdropDate: state.lastAirdropDate, lastSpecialDate: state.lastSpecialDate
+                energy: state.energy, lastAirdropDate: state.lastAirdropDate, lastSpecialDate: state.lastSpecialDate,
+                completedTasks: state.completedTasks
             }).catch(e=>console.warn);
         }, 1500);
     }
     function commit() { saveLocal(); pushDB(); }
 
-    // Tap handler (clean float effect)
+    // Tap handler with clean float
     function tapHandler(e) {
         let clientX = e.clientX || (e.touches?.[0]?.clientX);
         let clientY = e.clientY || (e.touches?.[0]?.clientY);
@@ -517,7 +535,7 @@
         if(state.passiveIncome > 0) { state.coins += state.passiveIncome / 3600; updateUI(); saveLocal(); }
     }, 1000);
 
-    // AD handler (fast load, cache blockId)
+    // Ad handler
     function showAd(callback) {
         if(!window.Adsgram) { showToast("Ad service loading, try again", true); return; }
         const adCtrl = window.Adsgram.init({ blockId: "int-27577" });
@@ -569,7 +587,7 @@
         updateUI(); renderUpgrades(); commit(); showToast(`${upgradesMeta[idx].name} upgraded!`);
     };
 
-    // Leaderboard: fixed ordering by coins descending
+    // Leaderboard: fixed descending order (highest coins first)
     async function refreshLeaderboard() {
         try {
             const topSnap = await db.collection("users").orderBy("coins", "desc").limit(3).get();
@@ -582,6 +600,7 @@
             const higherCountSnap = await db.collection("users").where("coins", ">", state.coins).get();
             const userRank = higherCountSnap.size + 1;
             let leaderHtml = '';
+            if(topUsers.length === 0) leaderHtml = '<p style="text-align:center;">No miners yet</p>';
             topUsers.forEach((u, i) => {
                 const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : '🥉');
                 leaderHtml += `<div class="leaderboard-item">
@@ -590,14 +609,14 @@
                     <div style="flex:1;"><strong>${u.name}</strong><br><span style="color: var(--accent-gold);">${u.coins.toLocaleString()} coins</span></div>
                 </div>`;
             });
-            document.getElementById('leaderboardList').innerHTML = leaderHtml || '<p>No miners yet</p>';
+            document.getElementById('leaderboardList').innerHTML = leaderHtml;
             document.getElementById('userRankBadge').innerHTML = userRank === 1 ? "👑 #1" : `#${userRank}`;
             document.getElementById('userCoinsRank').innerHTML = Math.floor(state.coins).toLocaleString();
             document.getElementById('userRankAvatar').innerHTML = userPhoto ? `<img src="${userPhoto}" width="44" style="border-radius:50%;">` : '<i class="fa-solid fa-user-astronaut" style="font-size:28px;"></i>';
         } catch(e) { console.warn(e); }
     }
 
-    // Tasks with "GO" button and Telegram-friendly links
+    // TASKS with completion tracking (disable after reward)
     async function loadTasks() {
         let tasksHtml = '';
         try {
@@ -605,27 +624,55 @@
             if(!tasksSnap.empty) {
                 tasksSnap.forEach(doc => {
                     let t = doc.data();
-                    tasksHtml += `<div class="earn-card"><div><i class="${t.logo || 'fa-solid fa-list'}"></i></div><div style="flex:1; margin-left:12px;"><strong>${t.title}</strong><p>+${t.reward?.toLocaleString()} coins</p></div><button class="btn-iphone btn-green" onclick="completeTask('${t.taskType}','${t.url||''}',${t.reward})">GO</button></div>`;
+                    const taskId = doc.id;
+                    const isCompleted = state.completedTasks[taskId] === true;
+                    tasksHtml += `<div class="earn-card">
+                        <div><i class="${t.logo || 'fa-solid fa-list'}"></i></div>
+                        <div style="flex:1; margin-left:12px;"><strong>${t.title}</strong><p>+${t.reward?.toLocaleString()} coins</p></div>
+                        <button class="btn-iphone btn-green ${isCompleted ? 'btn-disabled' : ''}" id="taskBtn_${taskId}" onclick="${isCompleted ? '' : `completeTaskWithId('${taskId}','${t.taskType}','${t.url||''}',${t.reward})`}" ${isCompleted ? 'disabled' : ''}>${isCompleted ? '✔ DONE' : 'GO'}</button>
+                    </div>`;
                 });
             } else throw new Error();
         } catch(e) {
-            tasksHtml = `
-                <div class="earn-card"><div><i class="fa-brands fa-telegram" style="font-size:28px;"></i></div><div style="flex:1; margin-left:12px;"><strong>Join Crypto Community</strong><p>+15,000 coins</p></div><button class="btn-iphone btn-green" onclick="completeTask('link','https://t.me/crypto_x_official',15000)">GO</button></div>
-                <div class="earn-card"><div><i class="fa-regular fa-clock" style="font-size:28px;"></i></div><div style="flex:1; margin-left:12px;"><strong>Watch Bonus Ad</strong><p>+25,000 coins</p></div><button class="btn-iphone btn-green" onclick="completeTask('ad','',25000)">GO</button></div>
-                <div class="earn-card"><div><i class="fa-brands fa-twitter" style="font-size:28px;"></i></div><div style="flex:1; margin-left:12px;"><strong>Follow on X</strong><p>+10,000 coins</p></div><button class="btn-iphone btn-green" onclick="completeTask('link','https://twitter.com/crypto_x',10000)">GO</button></div>
-            `;
+            // Fallback static tasks with IDs
+            const fallbackTasks = [
+                { id: 'tg_channel', title: 'Join Crypto Community', reward: 15000, type: 'link', url: 'https://t.me/crypto_x_official', logo: 'fa-brands fa-telegram' },
+                { id: 'watch_ad_bonus', title: 'Watch Bonus Ad', reward: 25000, type: 'ad', url: '', logo: 'fa-regular fa-clock' },
+                { id: 'follow_x', title: 'Follow on X', reward: 10000, type: 'link', url: 'https://twitter.com/crypto_x', logo: 'fa-brands fa-twitter' }
+            ];
+            tasksHtml = '';
+            fallbackTasks.forEach(t => {
+                const isCompleted = state.completedTasks[t.id] === true;
+                tasksHtml += `<div class="earn-card">
+                    <div><i class="${t.logo}" style="font-size:28px;"></i></div>
+                    <div style="flex:1; margin-left:12px;"><strong>${t.title}</strong><p>+${t.reward.toLocaleString()} coins</p></div>
+                    <button class="btn-iphone btn-green ${isCompleted ? 'btn-disabled' : ''}" id="taskBtn_${t.id}" onclick="${isCompleted ? '' : `completeTaskWithId('${t.id}','${t.type}','${t.url}',${t.reward})`}" ${isCompleted ? 'disabled' : ''}>${isCompleted ? '✔ DONE' : 'GO'}</button>
+                </div>`;
+            });
         }
         document.getElementById('tasksContainer').innerHTML = tasksHtml;
     }
-    window.completeTask = (type, url, reward) => {
-        if(type === 'ad') showAd(() => { state.coins += reward; updateUI(); commit(); showToast(`+${reward.toLocaleString()} coins!`); });
-        else if(type === 'link') {
-            // Use Telegram WebApp method to stay inside app
+
+    window.completeTaskWithId = (taskId, type, url, reward) => {
+        if(state.completedTasks[taskId]) {
+            showToast("Task already completed!", true);
+            return;
+        }
+        const complete = () => {
+            state.completedTasks[taskId] = true;
+            state.coins += reward;
+            updateUI(); commit(); loadTasks(); // refresh to update button state
+            showToast(`+${reward.toLocaleString()} coins!`);
+        };
+        if(type === 'ad') {
+            showAd(() => complete());
+        } else if(type === 'link') {
             if(tg && tg.openTelegramLink) tg.openTelegramLink(url);
             else window.open(url, '_blank');
-            setTimeout(()=>{ state.coins += reward; updateUI(); commit(); showToast(`+${reward.toLocaleString()} coins!`); }, 2500);
+            setTimeout(() => complete(), 2000);
         }
     };
+
     function copyReferralLink() {
         let inp = document.getElementById('refLink');
         inp.select(); document.execCommand('copy');
@@ -647,13 +694,14 @@
                 if(data.referrals) state.referrals = data.referrals;
                 if(data.lastAirdropDate) state.lastAirdropDate = data.lastAirdropDate;
                 if(data.lastSpecialDate) state.lastSpecialDate = data.lastSpecialDate;
+                if(data.completedTasks) state.completedTasks = data.completedTasks;
                 state.tapPower = 1 + (state.upgrades[0] || 0);
                 state.maxEnergy = 1000 + ((state.upgrades[1] || 0) * 500);
                 state.energyRegen = 2 + ((state.upgrades[2] || 0));
                 state.passiveIncome = (state.upgrades[3] || 0) * 1000;
                 if(state.energy > state.maxEnergy) state.energy = state.maxEnergy;
             } else {
-                await docRef.set({ coins: state.coins, upgrades: state.upgrades, name: userName, photo_url: userPhoto, referrals: 0 });
+                await docRef.set({ coins: state.coins, upgrades: state.upgrades, name: userName, photo_url: userPhoto, referrals: 0, completedTasks: {} });
                 const startParam = tg.initDataUnsafe?.start_param || "";
                 if(startParam.startsWith("ref_")) {
                     let refId = startParam.replace("ref_","");
@@ -689,7 +737,7 @@
     window.onload = async () => {
         document.getElementById('userName').innerText = userName;
         if(userPhoto) document.getElementById('avatarBox').innerHTML = `<img src="${userPhoto}" style="width:100%; height:100%; object-fit:cover;">`;
-        document.getElementById('refLink').value = `https://t.me/${tg.initDataUnsafe?.user?.username || "CryptoXBot"}?start=ref_${userId}`;
+        document.getElementById('refLink').value = `https://t.me/Moneygainer_Bot?start=ref_${userId}`;
         await syncFirestore();
         setTimeout(() => { const loader = document.getElementById('loading-screen'); if(loader) { loader.style.opacity = '0'; setTimeout(()=>loader.style.display='none', 400); } }, 700);
         setInterval(() => refreshLeaderboard(), 15000);
